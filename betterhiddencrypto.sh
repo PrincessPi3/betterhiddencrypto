@@ -1,8 +1,8 @@
 #!/bin/bash
-# packages: scrypt, secure-delete
+# packages: python3, secure-delete
 
 # fail on error
-# set -e
+set -e
 
 dir_to_encrypt=./to_encrypt
 encrypted_archive_name=./.volume.bin
@@ -62,7 +62,7 @@ if [ "$1" = "encrypt" -o "$1" = "enc" -o "$1" = "e" ]; then
     encrypty
 elif [ "$1" = "decrypt" -o "$1" = "dec" -o "$1" = "d" ]; then
     decrypty
-elif [ $1 = "install" -o $1 = "i" ]; then 
+elif [ "$1" = "install" -o "$1" = "i" ]; then
 	if ! [ -f "$(command -v git)" ] && [ -f "$(command -v tar)" ] && [ -f "$(command -v make)" ]; then
         	echo "Needed Applications Not Found, Installing..."
             sudo apt update
@@ -93,5 +93,5 @@ elif [ $1 = "install" -o $1 = "i" ]; then
 
 	echo "Success: Ready to use"
 else
-	echo "Usage:\nEncrypt:\n\tsh hiddencrypto.sh enc\nDecrypt:\n\tsh hiddencrypto.sh dec\nInstall:\n\tsh hiddencrypto.sh install"
+	echo -e "\nUsage:\t\n\tEncrypt:\n\t\tbash betterhiddencrypto.sh e\n\t\tbash betterhiddencrypto.sh enc\n\t\tbash betterhiddencrypto.sh encrypt\n\tDecrypt:\n\t\tbash betterhiddencrypto.sh d\n\t\tbash betterhiddencrypto.sh dec\n\tbash betterhiddencrypto.sh decrypt\n\tInstall:\n\t\tbash betterhiddencrypto.sh i\n\t\tbash betterhiddencrypto.sh install"
 fi
