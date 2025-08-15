@@ -91,7 +91,6 @@ if __name__ == "__main__":
     # encryption mode
     if mode in ("encrypt", "enc", "e"):
         encrypt_file_cbc(input_file, output_file, passphrase)
-        # os.remove(compressed_file)
         print(f"Done: {input_file} compressed, encrypted into {output_file}")
     # decryption mode
     elif mode in ("decrypt", "dec", "d"):
