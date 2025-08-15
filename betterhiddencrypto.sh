@@ -19,7 +19,8 @@ encrypty(){
     srm -rz $dir_to_encrypt
 
     echo "Successfully Shredded Directory, Encrypting. Please Input Passphrase..."
-    scrypt enc $encrypted_volume_name $encrypted_archive_name
+    # scrypt enc $encrypted_volume_name $encrypted_archive_name
+    
 
     echo "Successfully Encrypted, Shredding Archive..."
     srm -rz $encrypted_volume_name
@@ -50,10 +51,6 @@ decrypty(){
     echo "Successfully Decompressed Decrypted Archive, Shredding Decrypted Archive..."
     srm -rz $encrypted_volume_name
     
-# doesnt seem to work
-#    echo "Wiping deallocated RAM..."
-#    sudo smem -ll # -ll is a single overwrite mode with 0xFF, single mode used for speed
-
     echo "Success: Done"
 }
 
