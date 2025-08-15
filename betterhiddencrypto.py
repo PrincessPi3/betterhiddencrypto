@@ -2,8 +2,16 @@ from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from argon2.low_level import hash_secret_raw, Type
 import sys
-
 import re
+
+debug_mode = True
+
+def hex_to_unicode_grep(hex_string):
+    # Ensure even length
+    if len(hex_string) % 2 != 0:
+        raise ValueError("Hex string must have even length")
+    # Group into two characters, format as \x{..}
+    return ''.join([f"\\x{{{hex_string[i:i+2]}}}" for i in range(0, len(hex_string), 2)])
 
 def check_passphrase(passphrase):
     # Checks password strength. Returns True if strong, else False.
@@ -46,6 +54,24 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = 
         hash_len=key_len, # default 32
         type=Type.ID, # Argon2id
     )
+
+    # print all da deets
+    if debug_mode:
+        # ugrep regex format
+        ugrep_key = hex_to_unicode_grep(key.hex())
+        ugrep_iv = hex_to_unicode_grep(iv.hex())
+        ugrep_salt = hex_to_unicode_grep(salt.hex())
+        # passphrase converted to hex then to ugrep format
+        ugrep_passphrase = hex_to_unicode_grep(passphrase.encode().hex())
+        # crib is a known plaintext value, to check for leaks
+        ugrep_crib = hex_to_unicode_grep("Flap9-Parasail1-Reappoint1-Bright9-Chute6".encode().hex())
+
+        print(f"\nPassphrase: find_bytes '{ugrep_passphrase}' .\n")
+        print(f"Derived key: find_bytes '{ugrep_key}' .\n")
+        print(f"Salt: find_bytes '{ugrep_salt}' .\n")
+        print(f"IV: find_bytes '{ugrep_iv}' .\n")
+        print(f"Crib: find_bytes '{ugrep_crib}' .\n")
+
     return key, salt, iv
 
 # Encrypts a file using AES-256-GCM mode with Argon2id key derivation.
