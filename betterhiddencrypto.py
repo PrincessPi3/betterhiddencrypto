@@ -5,6 +5,40 @@ from argon2.low_level import hash_secret_raw, Type
 import os
 import sys
 import getpass
+import tarfile
+import bz2
+
+def bz2_compress_directory(directory_path, output_bz2_file):
+    """
+    Compresses a directory into a .tar.bz2 file.
+    :param directory_path: Path to the directory to compress.
+    :param output_bz2_file: Output .tar.bz2 file path.
+    """
+    tar_path = output_bz2_file + ".tmp.tar"
+    # Create tar archive
+    with tarfile.open(tar_path, "w") as tar:
+        tar.add(directory_path, arcname=os.path.basename(directory_path))       
+    # Compress with bz2
+    with open(tar_path, 'rb') as f_in, bz2.open(output_bz2_file, 'wb') as f_out:
+        for chunk in iter(lambda: f_in.read(1024 * 1024), b''):
+            f_out.write(chunk)
+    os.remove(tar_path)
+
+def bz2_decompress_directory(bz2_file, output_dir):
+    """
+    Decompresses a .tar.bz2 file into a directory.
+    :param bz2_file: Path to the .tar.bz2 file.
+    :param output_dir: Directory to extract the contents to.
+    """
+    tar_path = bz2_file + ".tmp.tar"
+    # Decompress bz2 to tar
+    with bz2.open(bz2_file, 'rb') as f_in, open(tar_path, 'wb') as f_out:
+        for chunk in iter(lambda: f_in.read(1024 * 1024), b''):
+            f_out.write(chunk)
+    # Extract tar
+    with tarfile.open(tar_path, "r") as tar:
+        tar.extractall(path=output_dir)
+    os.remove(tar_path)
 
 def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = None, key_len: int = 32) -> bytes:
     """
@@ -108,7 +142,12 @@ if __name__ == "__main__":
         if not output_file:
             print("No output file specified. Using default: encrypted.bin")
             output_file = "encrypted.bin"
-        encrypt_file_cbc(input_file, output_file, password)
+        
+        bz2_compress_directory(input_file, output_file + ".bz2")
+        compressed_file = output_file + ".bz2"
+
+        encrypt_file_cbc(compressed_file, output_file, password)
+
         print(f"Done: {input_file} encrypted into {output_file}")
     # decryption mode
     elif mode in ("decrypt", "dec", "d"):
@@ -116,6 +155,8 @@ if __name__ == "__main__":
         if not output_file:
             print("No output file specified. Using default: decrypted.txt")
             output_file = "decrypted.txt"
+
+        bz2_decompress_directory(input_file + ".bz2", output_file)
         decrypt_file_cbc(input_file, output_file, password)
         print(f"Done: {input_file} decrypted into {output_file}")
     # fail mode
