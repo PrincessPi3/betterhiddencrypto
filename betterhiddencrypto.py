@@ -90,6 +90,7 @@ def decrypt_file_cbc(input_file, output_file, password):
 
 # Usage
 if __name__ == "__main__":
+    # default
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <input_file> [output_file]")
         exit(1)
@@ -97,21 +98,35 @@ if __name__ == "__main__":
     output_file = None
     if len(sys.argv) >= 3:
         output_file = sys.argv[2]
+
     mode = getpass.getpass("Enter mode (encrypt/decrypt enc/dec e/d): ")
-    password1 = getpass.getpass("Enter password: ")
-    password2 = getpass.getpass("Re-enter password: ")
-    if password1 != password2:
-        print("Passwords do not match. Exiting.")
-        exit(1)
-    password = password1
+
+    # encryption mode
     if mode in ("encrypt", "enc", "e"):
+        password1 = getpass.getpass("Enter password: ")
+        password2 = getpass.getpass("Re-enter password: ")
+        if password1 != password2:
+            print("Passwords do not match. Exiting.")
+            exit(1)
+        password = password1
+    
         if not output_file:
+            print("No output file specified. Using default: encrypted.bin")
             output_file = "encrypted.bin"
+        
         encrypt_file_cbc(input_file, output_file, password)
+
+    # decryption mode
     elif mode in ("decrypt", "dec", "d"):
+        password = getpass.getpass("Enter password: ")
+        
         if not output_file:
+            print("No output file specified. Using default: decrypted.txt")
             output_file = "decrypted.txt"
+        
         decrypt_file_cbc(input_file, output_file, password)
+    
+    # fail mode
     else:
         print("Invalid mode. Exiting.")
         exit(1)
