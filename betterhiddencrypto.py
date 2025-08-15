@@ -86,9 +86,7 @@ def decrypt_file_cbc(input_file, output_file, password):
     with open(output_file, 'wb') as f:
         f.write(plaintext)
 
-# print(derive_key_from_passphrase(get_random_bytes(16).hex()))
 
-# Usage
 if __name__ == "__main__":
     # default
     if len(sys.argv) < 2:
@@ -109,23 +107,19 @@ if __name__ == "__main__":
             print("Passwords do not match. Exiting.")
             exit(1)
         password = password1
-    
         if not output_file:
             print("No output file specified. Using default: encrypted.bin")
             output_file = "encrypted.bin"
-        
         encrypt_file_cbc(input_file, output_file, password)
-
+        print(f"Done: {input_file} encrypted into {output_file}")
     # decryption mode
     elif mode in ("decrypt", "dec", "d"):
         password = getpass.getpass("Enter password: ")
-        
         if not output_file:
             print("No output file specified. Using default: decrypted.txt")
             output_file = "decrypted.txt"
-        
         decrypt_file_cbc(input_file, output_file, password)
-    
+        print(f"Done: {input_file} decrypted into {output_file}")
     # fail mode
     else:
         print("Invalid mode. Exiting.")
