@@ -1,3 +1,5 @@
 .volume.bin*
 to_encrypt/*
 !to_encrypt/README.md
+.volume_old/*
+!volume_old/README.md
