@@ -1,0 +1,6 @@
+hammer linux and windows file systems for leaks
+work on antiforensics
+rework readme
+add password security and breach check
+A feature that shreds the first 1024 bytes of the encrypted archive so that the data is completely nuked and unrecoverable even with the passphrase. The feature should be easily integrated into other systems such that a nuke order can be executed from any custom event or trigger e.g. Alexa command, key combination on another comptuer, time based dead man's switch, etc.
+There will also have an option to wide empty space on a given disk for convenience.  
