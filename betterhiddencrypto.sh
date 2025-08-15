@@ -2,7 +2,7 @@
 # packages: scrypt, secure-delete
 
 # fail on error
-set -e
+# set -e
 
 dir_to_encrypt=./to_encrypt
 encrypted_archive_name=./.volume.bin
