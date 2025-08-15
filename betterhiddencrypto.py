@@ -25,12 +25,15 @@ def unpad(data):
     pad_len = data[-1]
     return data[:-pad_len]
 
+def do_kdf(passphrase, salt):
+    return PasswordHasher(salt_len=16, type='ID').hash(passphrase, salt=salt)
+
 def encrypt_file_cbc(input_file, output_file, password):
     """
     Encrypts a file using AES in CBC mode with Argon2id key derivation.
     """
     salt = get_random_bytes(16)
-    key = Argon2(password, salt, 32, type='ID')
+    key = do_kdf(password, salt)
     iv = get_random_bytes(16)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     with open(input_file, 'rb') as f:
