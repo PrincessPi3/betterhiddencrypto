@@ -1,7 +1,7 @@
 import subprocess
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
-from Crypto.Protocol.KDF import Argon2
+from argon2 import PasswordHasher
 import getpass
 
 def run_command(command):
