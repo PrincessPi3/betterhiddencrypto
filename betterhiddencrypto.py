@@ -4,7 +4,7 @@ from argon2.low_level import hash_secret_raw, Type
 import sys
 import re
 
-debug_mode = True
+debug_mode = False
 
 def hex_to_unicode_grep(hex_string):
     # Ensure even length
