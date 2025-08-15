@@ -1,5 +1,5 @@
 # hiddencrypto
-Silly lil script for using [scrypt](https://github.com/Tarsnap/scrypt), [secure-delete  (srm)](https://github.com/BlackArch/secure-delete), and tar to open and close an encrypted (scrypt) and compressed (bz2) and shred (srm) any lingering data immediately.
+Silly lil script for using [Argon2id](https://en.wikipedia.org/wiki/Argon2), [secure-delete  (srm)](https://github.com/BlackArch/secure-delete), AES265-CBC and tar to open and close an encrypted (scrypt) and compressed (bz2) and shred (srm) any lingering data immediately.
 
 ## Textwall about the frickin thing
 Encryption MY way!
