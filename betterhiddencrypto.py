@@ -26,7 +26,9 @@ def unpad(data):
     return data[:-pad_len]
 
 def do_kdf(passphrase, salt):
-    return PasswordHasher(salt_len=16).hash(passphrase, salt=salt)
+    sillyhash = PasswordHasher(salt_len=16).hash(passphrase, salt=salt)
+    print(sillyhash)
+    return sillyhash
 
 def encrypt_file_cbc(input_file, output_file, password):
     """
@@ -60,6 +62,9 @@ def decrypt_file_cbc(input_file, output_file, password):
     with open(output_file, 'wb') as f:
         f.write(plaintext)
 
+do_kdf(get_random_bytes(16), get_random_bytes(16))
+
+"""
 # Usage
 if __name__ == "__main__":
     mode = getpass.getpass("Enter mode (encrypt/decrypt): ")
@@ -68,3 +73,4 @@ if __name__ == "__main__":
         encrypt_file_cbc('plain.txt', 'encrypted.bin', password)
     elif mode == "decrypt" or mode == "dec" or mode == "d":
         decrypt_file_cbc('encrypted.bin', 'decrypted.txt', password)
+"""
