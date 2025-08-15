@@ -86,22 +86,18 @@ if __name__ == "__main__":
     if len(sys.argv) < 4:
         print(f"Usage: {sys.argv[0]} <mode> <passphrase> <input_file> <output_filename>")
         exit(1)
-        
     mode = sys.argv[1]
     passphrase = sys.argv[2]
     input_file = sys.argv[3]
     output_file = sys.argv[4]    
-
     # encryption mode
     if mode in ("encrypt", "enc", "e"):
-        encrypted_file = output_file + ".enc"
-        encrypt_file_cbc(input_file, encrypted_file, passphrase)
+        encrypt_file_cbc(input_file, output_file, passphrase)
         # os.remove(compressed_file)
         print(f"Done: {input_file} compressed, encrypted into {output_file}")
     # decryption mode
     elif mode in ("decrypt", "dec", "d"):
-        decrypted_file = output_file + "_" + str(time())
-        decrypt_file_cbc(input_file, decrypted_file, passphrase)
+        decrypt_file_cbc(input_file, output_file, passphrase)
     # fail mode
     else:
         print("Invalid mode. Exiting.")

@@ -13,7 +13,7 @@ encrypty(){
 
     echo "Starting..."
     read -s -p "Enter Passphrase: " passphrase1
-    read -s -p "Enter Passphrase: " passphrase2
+    read -s -p "Repeat: " passphrase2
     if [ "$passphrase1" != "$passphrase2" ]; then
         echo "Passphrases do not match!"
         exit 1
