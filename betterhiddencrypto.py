@@ -35,7 +35,7 @@ def encrypt_file_cbc(input_file, output_file, password):
     Encrypts a file using AES in CBC mode with Argon2id key derivation.
     """
     salt = get_random_bytes(16)
-    key = do_kdf(password, salt)
+    key = do_kdf(password)
     iv = get_random_bytes(16)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     with open(input_file, 'rb') as f:
