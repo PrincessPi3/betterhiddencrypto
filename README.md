@@ -30,7 +30,7 @@ smem is used to wipe unallocated RAM to ensure that no remaning traces of data a
 * Best practice is to disable networking when using hiddencrypto
 
 ## Usage
-To install:  
+To install:
 ```
 cd ~
 git clone https://github.com/PrincessPi3/betterhiddencrypto.git
