@@ -156,11 +156,13 @@ if __name__ == "__main__":
     elif mode in ("decrypt", "dec", "d"):
         password = getpass.getpass("Enter password: ")
         if not output_file:
-            print("No output file specified. Using default: decrypted")
-            output_file = "decrypted"
+            print("No output file specified. Using default: decrypted.bz2")
+            output_file = "decrypted.bz2"
+        
         # Always decrypt first
         decrypted_file = output_file
         decrypt_file_cbc(input_file, decrypted_file, password)
+
         # If the decrypted file is a .bz2, decompress it to a directory
         if decrypted_file.endswith('.bz2'):
             extract_dir = output_file + "_dir"
