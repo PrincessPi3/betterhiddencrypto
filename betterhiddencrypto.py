@@ -85,15 +85,13 @@ def decrypt_file_cbc(input_file, output_file, password):
     with open(output_file, 'wb') as f:
         f.write(plaintext)
 
-print(derive_key_from_passphrase(get_random_bytes(16).hex()))
+# print(derive_key_from_passphrase(get_random_bytes(16).hex()))
 
-"""
 # Usage
 if __name__ == "__main__":
-    mode = getpass.getpass("Enter mode (encrypt/decrypt): ")
+    mode = getpass.getpass("Enter mode (encrypt/decrypt enc/dec e/d): ")
     password = getpass.getpass("Enter password: ")
     if mode == "encrypt" or mode == "enc" or mode == "e":
         encrypt_file_cbc('plain.txt', 'encrypted.bin', password)
     elif mode == "decrypt" or mode == "dec" or mode == "d":
         decrypt_file_cbc('encrypted.bin', 'decrypted.txt', password)
-"""
