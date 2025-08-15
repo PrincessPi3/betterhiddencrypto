@@ -7,7 +7,7 @@ from argon2.low_level import hash_secret_raw, Type
 import os
 import getpass
 
-def derive_key_from_passphrase(passphrase: str, salt: bytes = None, key_len: int = 32) -> bytes:
+def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = None, key_len: int = 32) -> bytes:
     """
     Derive a key from a passphrase using Argon2id KDF (argon2-cffi).
     
@@ -18,7 +18,10 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, key_len: int
     """
     if salt is None:
         salt = os.urandom(16)
-    # Argon2id recommended parameters (can be tuned)
+
+    if iv is None:
+        iv = get_random_bytes(16)
+
     key = hash_secret_raw(
         secret=passphrase.encode(),
         salt=salt,
@@ -29,7 +32,7 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, key_len: int
         type=Type.ID,
     )
     # Return salt + key so you can store and reuse the salt for verification/decryption
-    return salt + key
+    return key, salt, iv
 
 def run_command(command):
     """
@@ -52,18 +55,11 @@ def unpad(data):
     pad_len = data[-1]
     return data[:-pad_len]
 
-def do_kdf(passphrase):
-    sillyhash = PasswordHasher().hash(passphrase)
-    print(sillyhash)
-    return sillyhash
-
 def encrypt_file_cbc(input_file, output_file, password):
     """
     Encrypts a file using AES in CBC mode with Argon2id key derivation.
     """
-    salt = get_random_bytes(16)
-    key = do_kdf(password)
-    iv = get_random_bytes(16)
+    key, salt, iv = derive_key_from_passphrase(password)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     with open(input_file, 'rb') as f:
         plaintext = f.read()
@@ -89,7 +85,7 @@ def decrypt_file_cbc(input_file, output_file, password):
     with open(output_file, 'wb') as f:
         f.write(plaintext)
 
-print(derive_key_from_passphrase("my_passphrase"))
+derive_key_from_passphrase(get_random_bytes(16))
 
 """
 # Usage
