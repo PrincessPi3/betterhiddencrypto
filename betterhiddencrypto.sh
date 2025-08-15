@@ -58,12 +58,12 @@ decrypty(){
     echo "Success: Done"
 }
 
-if [ "$1" = "enc" ]; then
+if [ "$1" = "encrypt" -o "$1" = "enc" -o "$1" = "e" ]; then
     encrypty
-elif [ "$1" = "dec" ]; then
+elif [ "$1" = "decrypt" -o "$1" = "dec" -o "$1" = "d" ]; then
     decrypty
-elif [ $1 = "install" ]; then 
-	if ! [ -f "$(command -v scrypt)" ] &&  [ -f "$(command -v tar)" ] && [ -f "$(command -v make)" ]; then
+elif [ $1 = "install" -o $1 = "i" ]; then 
+	if ! [ -f "$(command -v git)" ] && [ -f "$(command -v tar)" ] && [ -f "$(command -v make)" ]; then
         	echo "Needed Applications Not Found, Installing..."
             sudo apt update
 	        sudo apt install git secure-delete tar build-essential -y
