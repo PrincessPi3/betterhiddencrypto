@@ -59,7 +59,7 @@ def encrypt_file_cbc(input_file, output_file, password):
     """
     Encrypts a file using AES in CBC mode with Argon2id key derivation.
     """
-    key, salt, iv = derive_key_from_passphrase(password)
+    key, salt, iv = derive_key_from_passphrase(passphrase=password)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     with open(input_file, 'rb') as f:
         plaintext = f.read()
@@ -78,7 +78,7 @@ def decrypt_file_cbc(input_file, output_file, password):
         salt = f.read(16)
         iv = f.read(16)
         ciphertext = f.read()
-    key = Argon2(password, salt, 32, type='ID')
+    key, salt_gen, iv = derive_key_from_passphrase(passphrase=password, salt=salt, iv=iv, key_len=32)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     padded_plaintext = cipher.decrypt(ciphertext)
     plaintext = unpad(padded_plaintext)
