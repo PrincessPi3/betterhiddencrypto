@@ -25,8 +25,8 @@ def unpad(data):
     pad_len = data[-1]
     return data[:-pad_len]
 
-def do_kdf(passphrase, salt):
-    sillyhash = PasswordHasher(salt_len=16).hash(passphrase, salt=salt)
+def do_kdf(passphrase):
+    sillyhash = PasswordHasher().hash(passphrase)
     print(sillyhash)
     return sillyhash
 
