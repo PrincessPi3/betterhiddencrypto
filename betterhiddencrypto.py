@@ -141,7 +141,7 @@ if __name__ == "__main__":
         password = password1
         if not output_file:
             print("No output file specified. Using default: encrypted.bin")
-            output_file = "encrypted.bin"
+            output_file = "encrypted.bz2"
         # If input is a directory, compress it first
         if os.path.isdir(input_file):
             compressed_file = output_file + ".bz2"
