@@ -6,8 +6,10 @@ Encryption MY way!
 I was totally fucked off by the normie file encryption utilities like Veracrypt,. Cryptomator and openssl because in practice they have a couple absolutely glaring flaws.  
   
 For one, they are STILL using PMDKF2 as the KDF (Key Derivation Function, the algo that deterministically generates the 256-bit key from a passphrase) and the simple truth is that PBDKF2 is criminally outdated and no ever increasing number of iterations into the millions and millions are ever gonna change that.  
-So, I selected the gigachad KDF, [Argon2id](https://en.wikipedia.org/wiki/Argon2) to generate the 256-bit key. It features appx. With variable cost settings for time, memory, parralellization, and with an added randomly generated salt, it makes a very robust and attack resistant KDF.
+So, I selected the gigachad KDF, [Argon2id](https://en.wikipedia.org/wiki/Argon2) to generate the 256-bit key. It features appx. With variable cost settings for time, memory, parralellization, and with an added cryptographically securely randomly generated salt, it makes a very robust and attack resistant KDF.
   
+AES with 256bit key in GCM mode is used. GCM mode includes authtentication which is nice, and is considered one of the most secure AES modes.
+
 The other glaring issue that the normie cryptography utilities had was the fact that when files are moved to the volume, there is no shredding of the "ghost" file at the location it camer from, and in some cases, even left data traes on the disk without securely shredding them to clean up.  
 To that end, I'm using the secure-delete package to secure wipe any temporary or ghost bytes off the record.  
 srm is used to delete files and directories immediately upon compl,eting the next step successfully.  

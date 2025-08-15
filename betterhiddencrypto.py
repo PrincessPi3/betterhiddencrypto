@@ -18,9 +18,9 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = 
     key = hash_secret_raw(
         secret=passphrase.encode(),
         salt=salt,
-        time_cost=6,
-        memory_cost=400000,  # kibibytes (400 MiB)
-        parallelism=4,
+        time_cost=6, # some int of time cost? idk lmfao
+        memory_cost=512000,  # kibibytes (500 MiB)
+        parallelism=6, # threads
         hash_len=key_len, # default 32
         type=Type.ID, # Argon2id
     )
