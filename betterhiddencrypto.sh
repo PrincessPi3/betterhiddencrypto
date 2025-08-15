@@ -93,5 +93,5 @@ elif [ "$1" = "install" -o "$1" = "i" ]; then
 
 	echo "Success: Ready to use"
 else
-	echo -e "\nUsage:\t\n\tEncrypt:\n\t\tbash betterhiddencrypto.sh e\n\t\tbash betterhiddencrypto.sh enc\n\t\tbash betterhiddencrypto.sh encrypt\n\tDecrypt:\n\t\tbash betterhiddencrypto.sh d\n\t\tbash betterhiddencrypto.sh dec\n\tbash betterhiddencrypto.sh decrypt\n\tInstall:\n\t\tbash betterhiddencrypto.sh i\n\t\tbash betterhiddencrypto.sh install"
+	echo -e "\nUsage:\t\n\tEncrypt:\n\t\tbash betterhiddencrypto.sh e\n\t\tbash betterhiddencrypto.sh enc\n\t\tbash betterhiddencrypto.sh encrypt\n\tDecrypt:\n\t\tbash betterhiddencrypto.sh d\n\t\tbash betterhiddencrypto.sh dec\n\t\tbash betterhiddencrypto.sh decrypt\n\tInstall:\n\t\tbash betterhiddencrypto.sh i\n\t\tbash betterhiddencrypto.sh install"
 fi

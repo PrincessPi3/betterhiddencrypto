@@ -38,28 +38,17 @@ def encrypt_file_gcm(input_file, output_file, passphrase):
         f.write(iv)
         f.write(tag)
         f.write(ciphertext)
-"""
-# Decrypts a file using AES-256-GCM mode with Argon2id key derivation.
-def decrypt_file_gcm(input_file, output_file, passphrase):
-    with open(input_file, 'rb') as f:
-        salt = f.read(16)
-        iv = f.read(16)
-        tag = f.read(16)
-        ciphertext = f.read()
-    key, salt, iv = derive_key_from_passphrase(passphrase=passphrase, salt=salt, iv=iv, key_len=32)
-    cipher = AES.new(key, AES.MODE_GCM, nonce=iv)
-    plaintext = cipher.decrypt_and_verify(ciphertext, tag)
-    with open(output_file, 'wb') as f:
-        f.write(plaintext)
-"""
 
 # Encrypts a file using AES-256-GCM mode with Argon2id key derivation.
 def encrypt_file_gcm(input_file, output_file, passphrase):
+    # get key, salt, and iv
     key, salt, iv = derive_key_from_passphrase(passphrase=passphrase)
+    # AES GCM mode with 256-bit key and that silly lil nonce
     cipher = AES.new(key, AES.MODE_GCM, nonce=iv)
     with open(input_file, 'rb') as f:
         plaintext = f.read()
     ciphertext, tag = cipher.encrypt_and_digest(plaintext)
+    # Write the salt, iv, tag, and ciphertext to the output file
     with open(output_file, 'wb') as f:
         f.write(salt)
         f.write(iv)
@@ -68,6 +57,7 @@ def encrypt_file_gcm(input_file, output_file, passphrase):
 
 # Decrypts a file using AES-256-GCM mode with Argon2id key derivation
 def decrypt_file_gcm(input_file, output_file, passphrase):
+    # Read the salt, iv, tag, and ciphertext from the input file
     with open(input_file, 'rb') as f:
         salt = f.read(16)
         iv = f.read(16)
