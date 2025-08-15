@@ -26,7 +26,7 @@ def unpad(data):
     return data[:-pad_len]
 
 def do_kdf(passphrase, salt):
-    return PasswordHasher(salt_len=16, type='ID').hash(passphrase, salt=salt)
+    return PasswordHasher(salt_len=16, type=ID).hash(passphrase, salt=salt)
 
 def encrypt_file_cbc(input_file, output_file, password):
     """
