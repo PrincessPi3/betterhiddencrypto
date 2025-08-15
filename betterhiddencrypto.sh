@@ -65,7 +65,9 @@ elif [ "$1" = "dec" ]; then
 elif [ $1 = "install" ]; then 
 	if ! [ -f "$(command -v scrypt)" ] &&  [ -f "$(command -v tar)" ] && [ -f "$(command -v make)" ]; then
         	echo "Needed Applications Not Found, Installing..."
-	        sudo apt install scrypt secure-delete tar build-essential
+            sudo apt update
+	        sudo apt install git secure-delete tar build-essential -y
+            pip install -r requirements.txt
 	        echo "Success: Installed"
 	fi
 

@@ -1,7 +1,6 @@
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from argon2.low_level import hash_secret_raw, Type
-from time import time
 import sys
 
 def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = None, key_len: int = 32) -> bytes:
