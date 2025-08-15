@@ -3,8 +3,27 @@ from Crypto.Random import get_random_bytes
 from argon2.low_level import hash_secret_raw, Type
 import sys
 
+import re
+
 def check_passphrase(passphrase):
-    return passphrase
+    # Checks password strength. Returns True if strong, else False.
+    # Criteria: min 20 chars, upper, lower, digit, special char.
+    if len(passphrase) < 20:
+        print("Password too short (min 20 chars)")
+        return False
+    if not re.search(r"[A-Z]", passphrase):
+        print("Password must contain an uppercase letter")
+        return False
+    if not re.search(r"[a-z]", passphrase):
+        print("Password must contain a lowercase letter")
+        return False
+    if not re.search(r"[0-9]", passphrase):
+        print("Password must contain a digit")
+        return False
+    if not re.search(r"[^A-Za-z0-9]", passphrase):
+        print("Password must contain a special character")
+        return False
+    return True
 
 def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = None, key_len: int = 32) -> bytes:
     # Derive a key from a passphrase using Argon2id KDF (argon2-cffi).
@@ -69,6 +88,10 @@ if __name__ == "__main__":
     passphrase = sys.argv[2]
     input_file = sys.argv[3]
     output_file = sys.argv[4]
+    # check password strength before proceeding
+    if not check_passphrase(passphrase):
+        print("Weak password. Exiting.")
+        exit(1)
     # encrypt mode
     if mode in ("encrypt", "enc", "e"):
         encrypt_file_gcm(input_file, output_file, passphrase)
