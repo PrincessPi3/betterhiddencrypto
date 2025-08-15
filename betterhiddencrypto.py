@@ -62,7 +62,7 @@ def decrypt_file_cbc(input_file, output_file, password):
     with open(output_file, 'wb') as f:
         f.write(plaintext)
 
-do_kdf(get_random_bytes(16), get_random_bytes(16))
+do_kdf(get_random_bytes(16))
 
 """
 # Usage
