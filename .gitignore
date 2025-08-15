@@ -1,1 +1,2 @@
 .volume.bin*
+!to_encrypt/README.md
