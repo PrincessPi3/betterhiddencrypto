@@ -2,6 +2,7 @@ import subprocess
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from argon2.low_level import hash_secret_raw, Type
+from time import time
 import os
 import sys
 import getpass
@@ -144,11 +145,11 @@ if __name__ == "__main__":
         if os.path.isdir(input_file):
             # Directory: compress then encrypt
             if not output_file:
-                output_file = "encrypted"
+                output_file = "./encrypted"
             compressed_file = output_file + ".bz2"
             bz2_compress_directory(input_file, compressed_file)
             encrypt_file_cbc(compressed_file, output_file + ".enc", password)
-            os.remove(compressed_file)
+            # os.remove(compressed_file)
             print(f"Done: {input_file} compressed, encrypted into {output_file}")
         else:
             # File: just encrypt
@@ -160,14 +161,14 @@ if __name__ == "__main__":
     elif mode in ("decrypt", "dec", "d"):
         password = getpass.getpass("Enter password: ")
         if not output_file:
-            output_file = "decrypted"
+            output_file = "./decrypted"
         decrypted_file = output_file
+        output_file = decrypted_file + str(time())
         decrypt_file_cbc(input_file, decrypted_file, password)
         # If the decrypted file is a .bz2, decompress it to a directory
         if decrypted_file.endswith('.bz2') or decrypted_file.endswith('.bz2.enc') or decrypted_file.endswith('.tmp.bz2'):
-            extract_dir = output_file + "_dir"
-            bz2_decompress_directory(decrypted_file, extract_dir)
-            os.remove(decrypted_file)
+            bz2_decompress_directory(decrypted_file, output_file)
+            # os.remove(decrypted_file)
             print(f"Done: {input_file} decrypted and decompressed into {extract_dir}")
         else:
             print(f"Done: {input_file} decrypted into {output_file}")
