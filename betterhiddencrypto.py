@@ -5,6 +5,7 @@ from Crypto.Random import get_random_bytes
 # from Crypto.Protocol.KDF import Argon2id
 from argon2.low_level import hash_secret_raw, Type
 import os
+import sys
 import getpass
 
 def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = None, key_len: int = 32) -> bytes:
@@ -89,9 +90,28 @@ def decrypt_file_cbc(input_file, output_file, password):
 
 # Usage
 if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print(f"Usage: {sys.argv[0]} <input_file> [output_file]")
+        exit(1)
+    input_file = sys.argv[1]
+    output_file = None
+    if len(sys.argv) >= 3:
+        output_file = sys.argv[2]
     mode = getpass.getpass("Enter mode (encrypt/decrypt enc/dec e/d): ")
-    password = getpass.getpass("Enter password: ")
-    if mode == "encrypt" or mode == "enc" or mode == "e":
-        encrypt_file_cbc('plain.txt', 'encrypted.bin', password)
-    elif mode == "decrypt" or mode == "dec" or mode == "d":
-        decrypt_file_cbc('encrypted.bin', 'decrypted.txt', password)
+    password1 = getpass.getpass("Enter password: ")
+    password2 = getpass.getpass("Re-enter password: ")
+    if password1 != password2:
+        print("Passwords do not match. Exiting.")
+        exit(1)
+    password = password1
+    if mode in ("encrypt", "enc", "e"):
+        if not output_file:
+            output_file = "encrypted.bin"
+        encrypt_file_cbc(input_file, output_file, password)
+    elif mode in ("decrypt", "dec", "d"):
+        if not output_file:
+            output_file = "decrypted.txt"
+        decrypt_file_cbc(input_file, output_file, password)
+    else:
+        print("Invalid mode. Exiting.")
+        exit(1)
