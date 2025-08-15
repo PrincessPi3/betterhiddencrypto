@@ -148,13 +148,13 @@ if __name__ == "__main__":
                 output_file = "./encrypted"
             compressed_file = output_file + ".bz2"
             bz2_compress_directory(input_file, compressed_file)
-            encrypt_file_cbc(compressed_file, output_file + ".enc", password)
+            encrypt_file_cbc(compressed_file, compressed_file + ".enc", password)
             # os.remove(compressed_file)
             print(f"Done: {input_file} compressed, encrypted into {output_file}")
         else:
             # File: just encrypt
             if not output_file:
-                output_file = "encrypted"
+                output_file = "encrypted.bz2.enc"
             encrypt_file_cbc(input_file, output_file, password)
             print(f"Done: {input_file} encrypted into {output_file}")
     # decryption mode
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         if not output_file:
             output_file = "./decrypted"
         decrypted_file = output_file
-        output_file = decrypted_file + str(time())
+        output_file = decrypted_file + "_" + str(time())
         decrypt_file_cbc(input_file, decrypted_file, password)
         # If the decrypted file is a .bz2, decompress it to a directory
         if decrypted_file.endswith('.bz2') or decrypted_file.endswith('.bz2.enc') or decrypted_file.endswith('.tmp.bz2'):
