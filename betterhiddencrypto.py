@@ -3,6 +3,9 @@ from Crypto.Random import get_random_bytes
 from argon2.low_level import hash_secret_raw, Type
 import sys
 
+def check_passphrase(passphrase):
+    return passphrase
+
 def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = None, key_len: int = 32) -> bytes:
     # Derive a key from a passphrase using Argon2id KDF (argon2-cffi).
     # 
@@ -14,7 +17,7 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = 
         salt = get_random_bytes(16) # 128 bits
     if iv is None:
         iv = get_random_bytes(16) # 128 bits
-    # dialed these up for fun
+    # dialed these to crackhead levels for funnn
     key = hash_secret_raw(
         secret=passphrase.encode(),
         salt=salt,
@@ -25,19 +28,6 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = 
         type=Type.ID, # Argon2id
     )
     return key, salt, iv
-
-# Encrypts a file using AES-256-GCM mode with Argon2id key derivation.
-def encrypt_file_gcm(input_file, output_file, passphrase):
-    key, salt, iv = derive_key_from_passphrase(passphrase=passphrase)
-    cipher = AES.new(key, AES.MODE_GCM, nonce=iv)
-    with open(input_file, 'rb') as f:
-        plaintext = f.read()
-    ciphertext, tag = cipher.encrypt_and_digest(plaintext)
-    with open(output_file, 'wb') as f:
-        f.write(salt)
-        f.write(iv)
-        f.write(tag)
-        f.write(ciphertext)
 
 # Encrypts a file using AES-256-GCM mode with Argon2id key derivation.
 def encrypt_file_gcm(input_file, output_file, passphrase):
