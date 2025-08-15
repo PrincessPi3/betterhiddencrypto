@@ -1,4 +1,5 @@
 .volume.bin*
+*.bz2
 to_encrypt/*
 !to_encrypt/README.md
 .volume_old/*
