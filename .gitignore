@@ -1,5 +1,6 @@
 !README.md
 !betterhiddencrypto.sh
 !betterhiddencrypto.py
+!.volume_old
 !.volume_old/README.md
-!touch/*
+!.gitignore
