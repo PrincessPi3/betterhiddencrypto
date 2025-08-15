@@ -130,6 +130,7 @@ if __name__ == "__main__":
         output_file = sys.argv[2]
 
     mode = getpass.getpass("Enter mode (encrypt/decrypt enc/dec e/d): ")
+    compressed_file = output_file + ".bz2"
 
     # encryption mode
     if mode in ("encrypt", "enc", "e"):
@@ -144,9 +145,7 @@ if __name__ == "__main__":
             output_file = "encrypted.bin"
         
         # compress dir
-        bz2_compress_directory(input_file, output_file + ".bz2")
-        compressed_file = output_file + ".bz2"
-
+        bz2_compress_directory(input_file, compressed_file)
         encrypt_file_cbc(compressed_file, output_file, password)
 
         print(f"Done: {input_file} encrypted into {output_file}")
@@ -158,7 +157,7 @@ if __name__ == "__main__":
             output_file = "decrypted.txt"
 
         # decompress dir
-        bz2_decompress_directory(input_file + ".bz2", output_file)
+        bz2_decompress_directory(compressed_file, output_file)
         decrypt_file_cbc(compressed_file, output_file, password)
 
         print(f"Done: {input_file} decrypted into {output_file}")
