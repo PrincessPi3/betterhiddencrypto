@@ -130,7 +130,6 @@ if __name__ == "__main__":
         output_file = sys.argv[2]
 
     mode = getpass.getpass("Enter mode (encrypt/decrypt enc/dec e/d): ")
-    compressed_file = output_file + ".bz2"
 
     # encryption mode
     if mode in ("encrypt", "enc", "e"):
@@ -143,24 +142,33 @@ if __name__ == "__main__":
         if not output_file:
             print("No output file specified. Using default: encrypted.bin")
             output_file = "encrypted.bin"
-        
-        # compress dir
-        bz2_compress_directory(input_file, compressed_file)
-        encrypt_file_cbc(compressed_file, output_file, password)
-
-        print(f"Done: {input_file} encrypted into {output_file}")
+        # If input is a directory, compress it first
+        if os.path.isdir(input_file):
+            compressed_file = output_file + ".bz2"
+            bz2_compress_directory(input_file, compressed_file)
+            encrypt_file_cbc(compressed_file, output_file, password)
+            os.remove(compressed_file)
+            print(f"Done: {input_file} compressed, encrypted into {output_file}")
+        else:
+            encrypt_file_cbc(input_file, output_file, password)
+            print(f"Done: {input_file} encrypted into {output_file}")
     # decryption mode
     elif mode in ("decrypt", "dec", "d"):
         password = getpass.getpass("Enter password: ")
         if not output_file:
-            print("No output file specified. Using default: decrypted.txt")
-            output_file = "decrypted.txt"
-
-        # decompress dir
-        bz2_decompress_directory(compressed_file, output_file)
-        decrypt_file_cbc(compressed_file, output_file, password)
-
-        print(f"Done: {input_file} decrypted into {output_file}")
+            print("No output file specified. Using default: decrypted")
+            output_file = "decrypted"
+        # Always decrypt first
+        decrypted_file = output_file
+        decrypt_file_cbc(input_file, decrypted_file, password)
+        # If the decrypted file is a .bz2, decompress it to a directory
+        if decrypted_file.endswith('.bz2'):
+            extract_dir = output_file + "_dir"
+            bz2_decompress_directory(decrypted_file, extract_dir)
+            os.remove(decrypted_file)
+            print(f"Done: {input_file} decrypted and decompressed into {extract_dir}")
+        else:
+            print(f"Done: {input_file} decrypted into {output_file}")
     # fail mode
     else:
         print("Invalid mode. Exiting.")
