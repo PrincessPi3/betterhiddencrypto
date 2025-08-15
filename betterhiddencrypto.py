@@ -1,8 +1,6 @@
 import subprocess
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
-# from argon2 import PasswordHasher
-# from Crypto.Protocol.KDF import Argon2id
 from argon2.low_level import hash_secret_raw, Type
 import os
 import sys
@@ -15,7 +13,7 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = 
     :param passphrase: The input passphrase.
     :param salt: A salt (should be random and stored for later use). If None, a random 16-byte salt is generated.
     :param key_len: Length of the derived key in bytes (default 32 for AES-256).
-    :return: Derived key bytes.
+    :return: Derived key bytes, salt bytes, and iv bytes.
     """
     if salt is None:
         salt = os.urandom(16)
@@ -26,9 +24,9 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = 
     key = hash_secret_raw(
         secret=passphrase.encode(),
         salt=salt,
-        time_cost=2,
-        memory_cost=102400,  # kibibytes (100 MiB)
-        parallelism=2,
+        time_cost=6,
+        memory_cost=400000,  # kibibytes (400 MiB)
+        parallelism=4,
         hash_len=key_len,
         type=Type.ID,
     )
