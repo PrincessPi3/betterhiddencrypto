@@ -49,13 +49,10 @@ decrypty(){
     echo "Decrypting. Please Input Passphrase..."
     python betterhiddencrypto.py dec $passphrase $encrypted_archive_name $encrypted_volume_name
 
+    echo "Successfully Decrypted Encrypted Archive, Decompressing..."
+    tar xfj $encrypted_volume_name
+
     echo "Successfully Decrypted, Shredding Encrypted Archive..."
-    srm -rz $encrypted_archive_name
-
-    echo "Successfully Shredded Encrypted Archive, Decompressing..."
-    tar xfj $encrypted_volume_name -C $dir_to_encrypt
-
-    echo "Successfully Decompressed Decrypted Archive, Shredding Decrypted Archive..."
     srm -rz $encrypted_volume_name
 
     echo "Success: Done"
