@@ -143,6 +143,7 @@ if __name__ == "__main__":
             print("No output file specified. Using default: encrypted.bin")
             output_file = "encrypted.bin"
         
+        # compress dir
         bz2_compress_directory(input_file, output_file + ".bz2")
         compressed_file = output_file + ".bz2"
 
@@ -156,8 +157,10 @@ if __name__ == "__main__":
             print("No output file specified. Using default: decrypted.txt")
             output_file = "decrypted.txt"
 
+        # decompress dir
         bz2_decompress_directory(input_file + ".bz2", output_file)
-        decrypt_file_cbc(input_file, output_file, password)
+        decrypt_file_cbc(compressed_file, output_file, password)
+
         print(f"Done: {input_file} decrypted into {output_file}")
     # fail mode
     else:
