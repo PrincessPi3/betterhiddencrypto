@@ -21,7 +21,6 @@ encrypty(){
         passphrase=$passphrase1
     fi
 
-
     echo "Compressing Directory..."
     tar cfj $encrypted_volume_name $dir_to_encrypt
 
@@ -48,13 +47,13 @@ decrypty(){
     read -s -p "Enter Passphrase: " passphrase
 
     echo "Decrypting. Please Input Passphrase..."
-    python betterhiddencrypto.py dec $passphrase $encrypted_archive_name $dir_to_encrypt
+    python betterhiddencrypto.py dec $passphrase $encrypted_archive_name $encrypted_volume_name
 
     echo "Successfully Decrypted, Shredding Encrypted Archive..."
     srm -rz $encrypted_archive_name
 
     echo "Successfully Shredded Encrypted Archive, Decompressing..."
-    tar xfj $encrypted_volume_name
+    tar xfj $encrypted_volume_name -C $dir_to_encrypt
 
     echo "Successfully Decompressed Decrypted Archive, Shredding Decrypted Archive..."
     srm -rz $encrypted_volume_name
