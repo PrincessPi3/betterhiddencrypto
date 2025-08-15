@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # packages: scrypt, secure-delete
 
 # fail on error
@@ -37,7 +37,6 @@ encrypty(){
     echo "Success: Encryption Done"
     
     echo "Backing Up Old Archive"
-    cp ./.volume.bin ./.volume_old/.volume.bin.$timestamp
     cp ./.volume.bin.bak ./.volume_old/.volume.bin.bak.$timestamp
 
     echo "Backing Up New Archive"
