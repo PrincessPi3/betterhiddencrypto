@@ -50,11 +50,12 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = 
     :return: Derived key bytes, salt bytes, and iv bytes.
     """
     if salt is None:
-        salt = os.urandom(16)
+        salt = os.urandom(16) # 128 bits
 
     if iv is None:
-        iv = get_random_bytes(16)
+        iv = get_random_bytes(16) # 128 bits
 
+    # dieled these up for funnn
     key = hash_secret_raw(
         secret=passphrase.encode(),
         salt=salt,
@@ -64,6 +65,7 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = 
         hash_len=key_len,
         type=Type.ID,
     )
+
     # Return salt + key so you can store and reuse the salt for verification/decryption
     return key, salt, iv
 
@@ -143,7 +145,7 @@ if __name__ == "__main__":
             # Directory: compress then encrypt
             if not output_file:
                 output_file = "encrypted.bin"
-            compressed_file = output_file + ".tmp.bz2"
+            compressed_file = output_file + ".bz2"
             bz2_compress_directory(input_file, compressed_file)
             encrypt_file_cbc(compressed_file, output_file, password)
             os.remove(compressed_file)
