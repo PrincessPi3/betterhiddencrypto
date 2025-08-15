@@ -1,8 +1,24 @@
 import subprocess
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
-from argon2 import PasswordHasher
+# from argon2 import PasswordHasher
+from Crypto.Protocol.KDF import Argon2id
 import getpass
+
+def derive_key_from_passphrase(passphrase: str, salt: bytes = None, key_len: int = 32) -> bytes:
+    """
+    Derive a key from a passphrase using Argon2id KDF.
+    
+    :param passphrase: The input passphrase.
+    :param salt: A salt (should be random and stored for later use). If None, a random 16-byte salt is generated.
+    :param key_len: Length of the derived key in bytes (default 32 for AES-256).
+    :return: Derived key bytes.
+    """
+    if salt is None:
+        salt = get_random_bytes(16)
+    key = Argon2id(passphrase.encode(), salt, key_len, t=2, p=2, memory_cost=102400)
+    # Return salt + key so you can store and reuse the salt for verification/decryption
+    return salt + key
 
 def run_command(command):
     """
@@ -62,7 +78,8 @@ def decrypt_file_cbc(input_file, output_file, password):
     with open(output_file, 'wb') as f:
         f.write(plaintext)
 
-do_kdf(get_random_bytes(16))
+salt, key = do_kdf(get_random_bytes(16))
+print(salt, key)
 
 """
 # Usage
