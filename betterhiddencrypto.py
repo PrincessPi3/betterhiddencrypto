@@ -6,40 +6,6 @@ from time import time
 import os
 import sys
 import getpass
-import tarfile
-import bz2
-
-def bz2_compress_directory(directory_path, output_bz2_file):
-    """
-    Compresses a directory into a .tar.bz2 file.
-    :param directory_path: Path to the directory to compress.
-    :param output_bz2_file: Output .tar.bz2 file path.
-    """
-    tar_path = output_bz2_file + ".tmp.tar"
-    # Create tar archive
-    with tarfile.open(tar_path, "w") as tar:
-        tar.add(directory_path, arcname=os.path.basename(directory_path))       
-    # Compress with bz2
-    with open(tar_path, 'rb') as f_in, bz2.open(output_bz2_file, 'wb') as f_out:
-        for chunk in iter(lambda: f_in.read(1024 * 1024), b''):
-            f_out.write(chunk)
-    os.remove(tar_path)
-
-def bz2_decompress_directory(bz2_file, output_dir):
-    """
-    Decompresses a .tar.bz2 file into a directory.
-    :param bz2_file: Path to the .tar.bz2 file.
-    :param output_dir: Directory to extract the contents to.
-    """
-    tar_path = bz2_file + ".tmp.tar"
-    # Decompress bz2 to tar
-    with bz2.open(bz2_file, 'rb') as f_in, open(tar_path, 'wb') as f_out:
-        for chunk in iter(lambda: f_in.read(1024 * 1024), b''):
-            f_out.write(chunk)
-    # Extract tar
-    with tarfile.open(tar_path, "r") as tar:
-        tar.extractall(path=output_dir)
-    os.remove(tar_path)
 
 def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = None, key_len: int = 32) -> bytes:
     """
@@ -69,13 +35,6 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = 
 
     # Return salt + key so you can store and reuse the salt for verification/decryption
     return key, salt, iv
-
-def run_command(command):
-    """
-    Runs a shell command and returns its output as a string.
-    """
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
-    return result.stdout
 
 def pad(data):
     """
@@ -124,54 +83,25 @@ def decrypt_file_cbc(input_file, output_file, password):
 
 if __name__ == "__main__":
     # default
-    if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} <input_file> [output_file]")
+    if len(sys.argv) < 4:
+        print(f"Usage: {sys.argv[0]} <mode> <passphrase> <input_file> <output_filename>")
         exit(1)
-    input_file = sys.argv[1]
-    output_file = None
-    if len(sys.argv) >= 3:
-        output_file = sys.argv[2]
-
-    mode = getpass.getpass("Enter mode (encrypt/decrypt enc/dec e/d): ")
+        
+    mode = sys.argv[1]
+    passphrase = sys.argv[2]
+    input_file = sys.argv[3]
+    output_file = sys.argv[4]    
 
     # encryption mode
     if mode in ("encrypt", "enc", "e"):
-        password1 = getpass.getpass("Enter password: ")
-        password2 = getpass.getpass("Re-enter password: ")
-        if password1 != password2:
-            print("Passwords do not match. Exiting.")
-            exit(1)
-        password = password1
-        if os.path.isdir(input_file):
-            # Directory: compress then encrypt
-            if not output_file:
-                output_file = "./encrypted"
-            compressed_file = output_file + ".bz2"
-            bz2_compress_directory(input_file, compressed_file)
-            encrypt_file_cbc(compressed_file, compressed_file + ".enc", password)
-            # os.remove(compressed_file)
-            print(f"Done: {input_file} compressed, encrypted into {output_file}")
-        else:
-            # File: just encrypt
-            if not output_file:
-                output_file = "encrypted.bz2.enc"
-            encrypt_file_cbc(input_file, output_file, password)
-            print(f"Done: {input_file} encrypted into {output_file}")
+        encrypted_file = output_file + ".enc"
+        encrypt_file_cbc(input_file, encrypted_file, passphrase)
+        # os.remove(compressed_file)
+        print(f"Done: {input_file} compressed, encrypted into {output_file}")
     # decryption mode
     elif mode in ("decrypt", "dec", "d"):
-        password = getpass.getpass("Enter password: ")
-        if not output_file:
-            output_file = "./decrypted"
-        decrypted_file = output_file
-        output_file = decrypted_file + "_" + str(time())
-        decrypt_file_cbc(input_file, decrypted_file, password)
-        # If the decrypted file is a .bz2, decompress it to a directory
-        if decrypted_file.endswith('.bz2') or decrypted_file.endswith('.bz2.enc') or decrypted_file.endswith('.tmp.bz2'):
-            bz2_decompress_directory(decrypted_file, output_file)
-            # os.remove(decrypted_file)
-            print(f"Done: {input_file} decrypted and decompressed into {extract_dir}")
-        else:
-            print(f"Done: {input_file} decrypted into {output_file}")
+        decrypted_file = output_file + "_" + str(time())
+        decrypt_file_cbc(input_file, decrypted_file, passphrase)
     # fail mode
     else:
         print("Invalid mode. Exiting.")
