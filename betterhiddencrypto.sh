@@ -50,10 +50,9 @@ encrypty(){
     fi
 
     echo "Compressing Directory..."
-    # tar cfjW $encrypted_volume_name $dir_to_encrypt # added W to verify arvhive befe4 shredding dir
 
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
-    echo "$passphrase" | sha512sum
+    echo "$passphrase" | sha512sum | awk '{print $1}'
     7z a -p"$passphrase" -mhe=on "$encrypted_volume_name" "$dir_to_encrypt"
 
     echo "Successfully Compressed, Shredding Directory..."
@@ -84,6 +83,7 @@ decrypty(){
     python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
 
     echo "Successfully Decrypted Encrypted Archive, Decompressing..."
+    echo "$passphrase" | sha512sum | awk '{print $1}' # the statistically independent passphrase for redundant encryption
     7z x -p"$passphrase" "$encrypted_volume_name"
 
     echo "Successfully Decrypted, Shredding Encrypted Archive..."
