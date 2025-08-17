@@ -43,11 +43,11 @@ shred_dir() {
         # three iterations plus a zeroing and deletion then rm -rf to remove the directory structure
         # all the uses of shred redirect all output to /dev/null so that its silent af
         # also all find operatons on nukin shit excludes any dir named .git for speed
-        find -path ".git" -prune -o "$1" -type f -exec shred --zero --remove --force {} \; 1>/dev/null 2>/dev/null
-        rm -rf "$1" 1>/dev/null 2>/dev/null
+        find -path ".git" -prune -o "$1" -type f -exec shred --zero --remove --force {} \; # 1>/dev/null 2>/dev/null
+        rm -rf "$1" # 1>/dev/null 2>/dev/null
     elif [ -f "$1" ]; then # if its a file
         # three iterations plus a zeroing and deletion
-        shred --zero --remove --force "$1" 1>/dev/null 2>/dev/null
+        shred --zero --remove --force "$1" # 1>/dev/null 2>/dev/null
     else # fail
         echo "FAIL: Directory or file not found: $1 EXITING"
         exit 1 # explicitly fail
