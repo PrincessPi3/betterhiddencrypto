@@ -1,5 +1,5 @@
 #!/bin/bash
-# packages: python3, secure-delete, 7z, ugrep, sha512sum
+# packages: python3, pip, 7z, ugrep, coreutils
 
 # fail on error
 set -e # important to prevent data loss in event of a failure
@@ -36,6 +36,20 @@ environment_check() {
     fi
 }
 
+# switchan to shred and find because secure-delete is old af
+# also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
+shred_dir() {
+    if [ -d "$1" ]; then # if its a dir
+        find "$1" -type f -exec shred -z {} \;
+        rm -rf "$1"
+    elif [ -f "$1" ]; then # if its a file
+        shred -z "$1"
+    else # fail
+        echo "FAIL: Directory or file not found: $1 EXITING"
+        exit 1 # explicitly fail
+    fi
+}
+
 encrypty(){
     echo "ENCRYPTING Starting..."
     echo -e "\nEnter Passphrase: "
@@ -63,13 +77,13 @@ encrypty(){
     fi
 
     echo -e "\tArchive passed check, Shredding directory..."
-    srm -rz "$dir_to_encrypt"
+    shred_dir "$dir_to_encrypt"
 
     echo -e "\tSuccessfully shredded directory, Running second pass encryption..."
     python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name"
 
     echo -e "\tSuccessfully encrypted, Shredding Archive..."
-    srm -rz "$encrypted_volume_name"
+    shred -z "$encrypted_volume_name"
 
     # check for bak archive and backup if exists
     if [ -f "$encrypted_archive_name.bak" ]; then

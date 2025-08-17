@@ -1,5 +1,5 @@
 # betterhiddencrypto
-(better) Silly lil script for using [Argon2id](https://en.wikipedia.org/wiki/Argon2), [secure-delete  (srm)](https://github.com/BlackArch/secure-delete), AES265-GCM and 7zip to redundantly and securely open and close an encrypted and compressed directory (7z) and shred (srm) any lingering data immediately following checks.
+(better) Silly lil script for using [Argon2id](https://en.wikipedia.org/wiki/Argon2), [secure-delete  (srm)](https://github.com/BlackArch/secure-delete), [AES265-GCM](https://medium.com/@pravallikayakkala123/understanding-aes-encryption-and-aes-gcm-mode-an-in-depth-exploration-using-java-e03be85a3faa), [7-Zip](https://www.7-zip.org/7z.html), and the secure-delete suite to redundantly and securely open and close an encrypted and compressed directory (7z) and shred (srm) any lingering data immediately following checks.
 
 ## Textwall about the frickin thing
 Encryption MY way!
@@ -25,13 +25,14 @@ smem is used to wipe unallocated RAM to ensure that no remaning traces of data a
 
 ## Important Details
 * Each time you encrypt the directory, it will use a brand new passphrase that you input. You can still use the old one, but it is set each time to whatever you enter twice regardless of the previous passphrase
-* Use a [secure passphrase](assets/how-to-create-a-secure-passphrase-2017-08-10_HQP.pdf) and DO NOT SAVE ON COMPUTER OR PASSSWORD MANAGER! Only save your passphrase on **PHYSICAL PAPER**
+* Use a [secure passphrase](assets/how-to-create-a-secure-passphrase-2017-08-10_HQP.pdf) and DO NOT SAVE ON COMPUTER OR PASSSWORD MANAGER! Only save your passphrase on **PHYSICAL PAPER** another great tip is to have a complex password written on paper, and append to prepend or modify it in some simple way that you can easily remember so that leak of the physical paper wont immediately mean compromise.
 * **Back Up Your Shit!** This is a completely unforgiving script when it comes to setting the password wrong
 * When creating encrypted backups, be certain to use a seperate, completely dissimilar passphrase for it. Store this passphrase on a seperate piece of paper, stored seperately
 * **Test Your Backups** Make completely sure they work and that you a precise and accurate passphrase for them
 * If your system has automatic backuops, RAID, cloud storage uplaods, or any other type of redundancy system in place, you should exclude the hiddebncrypto directory from it. Otherwise, partial or even data leaking data could be copied or even uploaded
 * **BE AWARE** When moving files from unencrypted drives to the encrypted arcive, **the original files may be recoverable from the original location** even if they are not visible. It is a best practice to shred empty space on that disk afterwords to ensure the orignal data is not forensically recoverable
 * Best practice is to disable networking when using hiddencrypto
+* **WATCH OUT FOR CLOUD STORAGE** Cloud services and backup services like Microsuck OneDrive automatically backs up any files in the OneDrive folders to the cloud **INCLUDING UNENCRYPTED FILES WHILE THEY ARE IN CLEARTEXT**
 
 ## Installation
 Prerequisites:
@@ -69,6 +70,10 @@ Decrypt explicitly:
 `bash hiddencrypto.sh d`  or  
 `bash hiddencrypto.sh dec`  or  
 `bash hiddencrypto.sh decrypt`
+
+## Cryptanalysis
+To test and hammer it for peak robustness, testing is going on in [cryptanalysis](./cryptanalysis/README.md
+)
 
 ## License
 Distributed under the [WTFPL Version 2](http://www.wtfpl.net/) [![WTFPL](assets/wtfpl-badge.png)](http://www.wtfpl.net/)  
