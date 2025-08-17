@@ -104,10 +104,12 @@ create_and_add_salt() {
 
 # usage: digest_passphrase <string passphrase>
 7z_digest_passphrase() {
+    echo "Digesting passphrase phase one"
     iter="$1"
     for i in {1..1337}; do # 1337 rotations set here
         iter=$(echo "$iter" | sha512sum | awk '{print $1}')
     done
+    echo "Done digesting passphrase phase one!"
 }
 
 encrypty(){
