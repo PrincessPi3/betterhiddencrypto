@@ -6,7 +6,7 @@ set -e # important to prevent data loss in event of a failure
 
 dir_to_encrypt="./to_encrypt"
 encrypted_archive_name="./.volume.bin"
-encrypted_volume_name="./.encrypted_volume.tar.bz2"
+encrypted_volume_name="./.encrypted_volume.7z"
 backup_dir="./.volume_old"
 
 environment_check() {
@@ -20,9 +20,9 @@ environment_check() {
 		mkdir "$backup_dir"
 	fi
 
-    if [ -f *.bz2 ]; then
+    if [ -f *.7z ]; then
         echo "WARNING! DANGLING UNENCRYPTED ARCHIVE FOUND"
-        ls -A *.bz2
+        ls -A *.7z
     fi
 
     # used to use command -v instead of which and i dont remember why
@@ -52,8 +52,8 @@ encrypty(){
     echo "Compressing Directory..."
 
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
-    echo "$passphrase" | sha512sum | awk '{print $1}'
-    7z a -p"$passphrase" -mhe=on "$encrypted_volume_name" "$dir_to_encrypt"
+    digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
+    7z a -p"$digest_passphrase" -mhe=on "$encrypted_volume_name" "$dir_to_encrypt"
 
     echo "Successfully Compressed, Shredding Directory..."
     srm -rz "$dir_to_encrypt"
@@ -83,8 +83,9 @@ decrypty(){
     python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
 
     echo "Successfully Decrypted Encrypted Archive, Decompressing..."
-    echo "$passphrase" | sha512sum | awk '{print $1}' # the statistically independent passphrase for redundant encryption
-    7z x -p"$passphrase" "$encrypted_volume_name"
+    # the statistically independent passphrase for redundant encryption
+    digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
+    7z x -p"$digest_passphrase" "$encrypted_volume_name"
 
     echo "Successfully Decrypted, Shredding Encrypted Archive..."
     srm -rz "$encrypted_volume_name"
