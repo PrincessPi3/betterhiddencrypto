@@ -10,6 +10,7 @@ dir_to_encrypt="./to_encrypt"
 encrypted_archive_name="./.volume.bin"
 encrypted_volume_name="./.encrypted_volume.7z"
 backup_dir="./.volume_old"
+salt_length=16 # in bytes
 
 environment_check() {
     # chezh em if both dir and archive dont exist
@@ -91,15 +92,33 @@ EMERGENCY_NUKE() {
     fi
 }
 
-# wip
-create_and_add_salt() {
-    salt=$(openssl rand -hex 16) # 16 bytes/128 bits
+# salt shit very much wip
+
+# usage my_salt=$(new_7z_salt)
+new_7z_salt() {
+    # nice solid cryptographically secure rng asssss
+    openssl rand $salt_length # echo the salt bytes
+}
+
+# todo sanity checks and silent it
+append_7z_salt() {
+    salt="$1"
     # append the salt to the encrypted archive
     printf "$salt" | cat $encrypted_archive_name > "$encrypted_archive_name.tmp"
     # copy the tempfile back to old name
     cp "$encrypted_archive_name.tmp" "$encrypted_archive_name"
     # shred the tempfile
     shred_dir "$encrypted_archive_name.tmp"
+}
+
+# todo sanity checks and silent it
+retrieve_7z_salt() {
+    # get the stored salt
+    tail -c $salt_length "$encrypted_archive_name"
+    # remove the salt from the archive
+    truncate -s -$salt_length "$encrypted_archive_name"
+    # dd if="$encrypted_archive_name" of="$encrypted_archive_name.tmp" bs=1 count=-16
+    # mv "$encrypted_archive_name.tmp" "$encrypted_archive_name"
 }
 
 # usage: digest_passphrase <string passphrase>

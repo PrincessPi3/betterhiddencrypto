@@ -1,0 +1,2 @@
+cd ~ && rm -rf betterhiddencrypto && git clone https://github.com/PrincessPi3/betterhiddencrypto.git && cd betterhiddencrypto && rm -rf to_encrypt && cp -r cryptanalysis/to_encrypt_testing to_encrypt
+
