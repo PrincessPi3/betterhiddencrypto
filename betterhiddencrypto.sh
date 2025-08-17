@@ -99,7 +99,7 @@ decrypty(){
     echo -e "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
     digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
-    7z x -p"$digest_passphrase" "$encrypted_volume_name" 1>/dev/null
+    7z x -p"$digest_passphrase" "$encrypted_volume_name" # 1>/dev/null
 
     echo -e "\tSuccessfully decrypted, Shredding encrypted archive..."
     srm -rz "$encrypted_volume_name"
