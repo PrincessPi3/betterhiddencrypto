@@ -61,28 +61,20 @@ EMERGENCY_NUKE() {
     # first phase just tosses the encryption headers (top 100 bytes) from the .volume.bin files and backups
     # this is done first and fast as possible for emergencies
     find . -path ".git" -prune -o -type f -name "*.volume.bin*" -exec shred --size=100 --force {} \; # 1>/dev/null 2>/dev/null
-    echo $?
 
     # next stage is to shred to_encrypt if it exists
     if [ -d "$dir_to_encrypt" ]; then
         shred_dir "$dir_to_encrypt" # 1>/dev/null 2>/dev/null
     fi
 
-    echo $?
-
-
     # third stage is to nuke any remaining dangling files explicitly
     find . -path ".git" -prune -o -type f -name "*.7z" -o -type f -name "*.bak*" -o -type f -name "*.tmp*" -exec shred --force {} \; # 1>/dev/null 2>/dev/null
-
-    echo $?
 
     # third stage is to go log the current dir's name, go up a directory, and shred everyfucking thing remaining
     # all dis shit is done silently fuck errors
     current_dir=$(basename "$PWD") # 1>/dev/null 2>/dev/null
-    echo $?
-    cd .. # 1>/dev/null 2>/dev/null
-    echo $?
-    shred_dir "$current_dir" # 1>/dev/null 2>/dev/null
+    cd ..
+    shred_dir "./$current_dir" # 1>/dev/null 2>/dev/null
     echo $?
 
     # optionally reboot immediately to wipe memory
