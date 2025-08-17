@@ -7,4 +7,4 @@ find ./to_encrypt -type f -exec sha512sum {} \; | tee -a "$log_file" 2>/dev/null
 # do the same for the volumes and add to log
 find ./cryptanalysis -type f -name ".volume*" -exec sha512sum {} \; | tee -a "$log_file" 2>/dev/null # silent on fail
 
-echo "Done! logged to $log_file"
+echo -e "\nDone! logged to $log_file"
