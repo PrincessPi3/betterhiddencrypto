@@ -75,17 +75,17 @@ encrypty(){
 
     # check for bak archive and backup if exists
     if [ -f "$encrypted_archive_name.bak" ]; then
-        echo -e "\tBacking up old archive"
+        echo -e "\tBacking up old archive ($encrypted_archive_name.bak)"
         cp "$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.bak.$timestamp"
     fi
 
     # check for existing archive and backup if exists
     if [ -f "$encrypted_archive_name" ]; then
-        echo -e "\tBacking up new archive"
-        cp "$encrypted_archive_name" "$backup_dir/$encrypted_archive_name.bak"
+        echo -e "\tBacking up new archive ($encrypted_archive_name.bak)"
+        cp "$encrypted_archive_name" "$encrypted_archive_name.bak"
     fi
 
-    echo -e "\nSuccess: Encryption done"
+    echo -e "\nSuccess: Encryption done! Encrypted to $encrypted_archive_name"
 
 }
 
@@ -105,7 +105,7 @@ decrypty(){
     echo -e "\tSuccessfully decrypted, Shredding encrypted archive..."
     srm -rz "$encrypted_volume_name"
 
-    echo -e "\nSuccess: Decryption done"
+    echo -e "\nSuccess: Decryption done! Decrypted to $dir_to_encrypt"
 }
 
 # run at each start
