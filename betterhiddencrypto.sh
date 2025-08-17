@@ -54,10 +54,10 @@ encrypty(){
     echo -e "\tCompressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
     digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
-    7z a -p"$digest_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" # 1>/dev/null # silent unless error
+    7z a -p"$digest_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
 
     echo -e "\tSuccessfully compressed, Testing archive integrity..."
-    7z t -p"$digest_passphrase" "$encrypted_volume_name" #  1>/dev/null # do this silently unless fail 
+    7z t -p"$digest_passphrase" "$encrypted_volume_name" 1>/dev/null # do this silently unless fail 
     if [ $? -ne 0 ]; then # explicitly exit on fail integrity check
         echo "Archive integrity test failed!"
         exit 1
@@ -99,7 +99,7 @@ decrypty(){
     echo -e "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
     digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
-    7z x -p"$digest_passphrase" "$encrypted_volume_name" # 1>/dev/null
+    7z x -p"$digest_passphrase" "$encrypted_volume_name" 1>/dev/null
 
     echo -e "\tSuccessfully decrypted, Shredding encrypted archive..."
     srm -rz "$encrypted_volume_name"
@@ -118,11 +118,11 @@ elif [ "$1" = "help" -o "$1" = "h" ]; then
     echo -e "\nUsage:\t\n\tEncrypt:\n\t\tbash betterhiddencrypto.sh e\n\t\tbash betterhiddencrypto.sh enc\n\t\tbash betterhiddencrypto.sh encrypt\n\tDecrypt:\n\t\tbash betterhiddencrypto.sh d\n\t\tbash betterhiddencrypto.sh dec\n\t\tbash betterhiddencrypto.sh decrypt\n\tHelp:\n\t\tbash betterhiddencrypto.sh h\n\t\tbash betterhiddencrypto.sh help\n\tSmart (default):\n\t\tbash betterhiddencrypto.sh\n"
 else
     # smart mode
-    if [ -f "$encrypted_archive_name" ]; then
-        echo -e "\tFound existing encrypted archive, attempting decryption..."
-        decrypty
-    else
-        echo -e "\tNo encrypted archive found, attempting encryption..."
+    if [ -d "$dir_to_encrypt" ]; then
+        echo -e "\tFound existing directory to encrypt ($dir_to_encrypt), defaulting to encryption..."
         encrypty
+    else
+        echo -e "\tNo directory found to encrypt ($dir_to_encrypt), defaulting to decryption..."
+        decrypty
     fi
 fi
