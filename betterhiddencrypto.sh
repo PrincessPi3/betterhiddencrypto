@@ -108,6 +108,9 @@ create_and_add_salt() {
     for i in {1..1337}; do # 1337 rotations set here
         iter=$(echo "$iter" | sha512sum | awk '{print $1}')
     done
+
+    # meant for usage like my_var=$(7z_digest_passphrase "my_passphrase")
+    echo $iter
 }
 
 encrypty(){
