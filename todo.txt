@@ -57,6 +57,9 @@ hidden volume/rubbehose type feature?
 duress pass?
 some type of dead man's switch to nuke?
 tamper evident/tamper nuke?
+memory shredding
+cronjob canary for leaked/unencrypted data
+store unencrypted files in memory only?
 refactor into platform independant pure python?
     compiled python exe?
     gui for nomies? (REEEEE)
