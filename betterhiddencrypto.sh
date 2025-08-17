@@ -70,7 +70,7 @@ encrypty(){
 
     if [ -f "$encrypted_archive_name" ]; then
         echo "Backing Up Old Archive"
-        cp "./$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.$timestamp"
+        cp "$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.bak.$timestamp"
 
         echo "Backing Up New Archive"
         cp "$encrypted_archive_name" "$backup_dir/$encrypted_archive_name.bak"
