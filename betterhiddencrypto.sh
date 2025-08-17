@@ -128,7 +128,7 @@ encrypty(){
 
     echo -e "\tCompressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
-    echo "Digesting passphrase phase 1..."
+    echo -e "\tDigesting passphrase phase 1..."
     digested_passphrase=$(7z_digest_passphrase "$passphrase")
     7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
 
@@ -181,7 +181,7 @@ decrypty(){
     # do the 7z decryption/decompression
     echo -e "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
-    echo "Digesting passphrase phase 1..."
+    echo -e "\tDigesting passphrase phase 1..."
     digested_passphrase=$(7z_digest_passphrase "$passphrase")
     7z x -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null
 
