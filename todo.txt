@@ -68,3 +68,5 @@ refactor into platform independant pure python?
     compiled python exe?
     gui for nomies? (REEEEE)
 add more disclaimers about data loss and potentially bad security for fun
+add debug mode to shell script and have it pass that to teh python script
+    document
