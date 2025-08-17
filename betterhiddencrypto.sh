@@ -151,7 +151,7 @@ encrypty(){
 
     # shred da 7z file
     echo -e "\tSuccessfully encrypted, Shredding Archive..."
-    shred_dir -z "$encrypted_volume_name"
+    shred_dir "$encrypted_volume_name"
 
     # check for bak archive and backup if exists
     if [ -f "$encrypted_archive_name.bak" ]; then
