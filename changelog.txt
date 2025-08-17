@@ -1,0 +1,13 @@
+changed encryption algo and mode to AES 256bit GCM mode
+changed kdf to argon2id with crackhead settings
+added redundant encryption with 7z using a statistically indepentant digest of the passphrase 
+(sha512)
+added smart mode
+changed from srm from secure-delete to shred with a little tooling around it to make it recursive also set it to zero before nuking
+added cryptanalysis/clean_up.sh to clean up any generated file (USE WITH CARE)
+added cryptanalysis/hammer_for_bytes.sh as tooling to hunt for leaks
+added cryptanalysis/checksums.sh to genreate sha256 checksums of all the files in to_encrypt (if present) as well as all .volume.bin files and their backups: .volume.bin.bak and those in .volume_old
+improved readme
+added help function
+added cryptanalysis/pass_used_in_testing.txt as the passphrase ive been using in testing
+added cryptanalysis/to_encrypt_testing as a backup of the directories and files used as to_encrypt in testing
