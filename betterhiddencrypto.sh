@@ -40,13 +40,46 @@ environment_check() {
 # also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
 shred_dir() {
     if [ -d "$1" ]; then # if its a dir
-        find "$1" -type f -exec shred -z {} \;
-        rm -rf "$1"
+        # three iterations plus a zeroing and deletion then rm -rf to remove the directory structure
+        # all the uses of shred redirect all output to /dev/null so that its silent af
+        # also all find operatons on nukin shit excludes any dir named .git for speed
+        find -type d -name ".git" -prune -o "$1" -type f -exec shred --zero --remove --force {} \; 1>/dev/null 2>/dev/null
+        rm -rf "$1" 1>/dev/null 2>/dev/null
     elif [ -f "$1" ]; then # if its a file
-        shred -z "$1"
+        # three iterations plus a zeroing and deletion
+        shred --zero --remove --force "$1" 1>/dev/null 2>/dev/null
     else # fail
         echo "FAIL: Directory or file not found: $1 EXITING"
         exit 1 # explicitly fail
+    fi
+}
+
+EMERGENCY_NUKE() {
+    # NUKE EVERYFUCKINGTHING IN THIS DIR
+    # CRASH IT WITH NO SURVIV
+
+    # first phase just tosses the encryption headers (top 100 bytes) from the .volume.bin files and backups
+    # this is done first and fast as possible for emergencies
+    find . -type d -name ".git" -prune -o -type f -name "*.volume.bin*" -exec shred --size=100 --force {} \; 1>/dev/null 2>/dev/null
+
+    # next stage is to shred to_encrypt if it exists
+    if [ -d "$dir_to_encrypt" ]; then
+        shred_dir "$dir_to_encrypt" 1>/dev/null 2>/dev/null
+    fi
+
+    # third stage is to nuke any remaining dangling files explicitly
+    find . -type d -name ".git" -prune -o -type f -name "*.7z" -o -type f -name "*.bak*" -o -type f -name "*.tmp*" -exec shred --force {} \; 1>/dev/null 2>/dev/null
+
+    # third stage is to go log the current dir's name, go up a directory, and shred everyfucking thing remaining
+    # all dis shit is done silently fuck errors
+    current_dir=$(basename "$PWD") 1>/dev/null 2>/dev/null
+    cd .. 1>/dev/null 2>/dev/null
+    shred_dir "$current_dir" 1>/dev/null 2>/dev/null
+
+    # optionally reboot immediately to wipe memory
+    # runs when called with any argument at all
+    if ! [ -z "$1" ]; then
+        sudo shutdown now
     fi
 }
 
