@@ -34,12 +34,14 @@ encrypty(){
     srm -rz $encrypted_volume_name
 
     echo "Success: Encryption Done"
-    
-    echo "Backing Up Old Archive"
-    cp ./.volume.bin.bak ./.volume_old/.volume.bin.bak.$timestamp
 
-    echo "Backing Up New Archive"
-    cp ./.volume.bin ./.volume.bin.bak
+    if [ -f $encrypted_archive_name ]; then
+        echo "Backing Up Old Archive"
+        cp ./.volume.bin.bak ./.volume_old/.volume.bin.bak.$timestamp
+
+        echo "Backing Up New Archive"
+        cp ./.volume.bin ./.volume.bin.bak
+    fi
 }
 
 decrypty(){
