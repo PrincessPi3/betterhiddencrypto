@@ -1,5 +1,5 @@
 # betterhiddencrypto
-(better) Silly lil script for using [Argon2id](https://en.wikipedia.org/wiki/Argon2), [AES265-GCM](https://medium.com/@pravallikayakkala123/understanding-aes-encryption-and-aes-gcm-mode-an-in-depth-exploration-using-java-e03be85a3faa), [7-Zip](https://www.7-zip.org/7z.html), and shred to redundantly and securely open and close an encrypted and compressed directory (7z) and shred (srm) any lingering data immediately following checks for robust antiforensics.
+(better) Silly lil script for using [Argon2id](https://en.wikipedia.org/wiki/Argon2), [AES265-GCM](https://medium.com/@pravallikayakkala123/understanding-aes-encryption-and-aes-gcm-mode-an-in-depth-exploration-using-java-e03be85a3faa), [7-Zip](https://www.7-zip.org/7z.html), and shred (coreutils) to redundantly and securely open and close an encrypted and compressed directory (7z) and shred (coreutils) any lingering data immediately following checks for robust antiforensics.
 
 ## Textwall about the frickin thing
 Encryption MY way!
