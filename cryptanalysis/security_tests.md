@@ -13,4 +13,4 @@
 
 ### tooling
 check checksums recursively of to_encrypt and output to a unique timestamped file
-   `find to_encrypt -type f -exec sha256sum {} \; | tee sha256sum-recursive-$(date "+%Y%m%d-%H%M-%S").tmp`
+   ``
