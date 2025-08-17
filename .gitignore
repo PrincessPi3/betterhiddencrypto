@@ -1,6 +1,7 @@
 .volume.bin*
-*.bz2
-*.tmp
+*.7z*
+*.tmp*
+*.bak*
 to_encrypt/*
 !to_encrypt/README.md
 .volume_old/*

@@ -21,7 +21,7 @@ smem is used to wipe unallocated RAM to ensure that no remaning traces of data a
 ## Antiforensics
 1. All unneeded data is robustly shredded immediately upon confirming that it is no longer needed.
 2. Extremely fast, most-sensitive-first nuke mode to destory all of the data in this dir, including encrypted volumes, their backups, any dangling unencrypted data, followd by optional immediate shutdown.
-3. Intense antiforensics testing and iterative improvement going on over in [cryptanalysis/](./cryptanalysis/README.md)
+3. Intense amateur antiforensics/cryptographic testing and iterative improvement going on over in [cryptanalysis/](./cryptanalysis/README.md)
 
 ## Back Up Your Shit
 * This script is probably as unstable as I am and will probably end up nuking your files
@@ -47,7 +47,6 @@ Need these packages installed:
 1. bash shell installed
 2. 7z
 3. git
-4. coreutils
 5. python3
 6. python3-pip
 7. ugrep 
