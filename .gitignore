@@ -1,7 +1,6 @@
 .volume.bin*
 *.bz2
 *.tmp
-hammer_for_bytes.sh
 to_encrypt/*
 !to_encrypt/README.md
 .volume_old/*
