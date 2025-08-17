@@ -1,5 +1,5 @@
 #!/bin/bash
-# packages: python3, pip, 7z, ugrep, coreutils
+# packages: python3, pip, 7z, ugrep, coreutils, openssl
 # pip packages: pycryptodome, argon2-cffi
 
 # fail on error
@@ -38,7 +38,7 @@ environment_check() {
         echo "Depends on git, 7z, ugrep, python3, and sha512sum"
         # todo: maybe make a clever installer function
         # sudo apt update
-        # sudo apt install git 7z ugrep python3 python3-pip -y
+        # sudo apt install git 7z ugrep python3 python3-pip openssl coreutils -y
         # pip install -r requirements.txt
         # echo "Success: Installed"
     fi
@@ -91,8 +91,18 @@ EMERGENCY_NUKE() {
     fi
 }
 
-# usage:
-# digest_passphrase <string passphrase>
+# wip
+create_and_add_salt() {
+    salt=$(openssl rand -hex 16) # 16 bytes/128 bits
+    # append the salt to the encrypted archive
+    printf "$salt" | cat $encrypted_archive_name > "$encrypted_archive_name.tmp"
+    # copy the tempfile back to old name
+    cp "$encrypted_archive_name.tmp" "$encrypted_archive_name"
+    # shred the tempfile
+    shred_dir "$encrypted_archive_name.tmp"
+}
+
+# usage: digest_passphrase <string passphrase>
 digest_passphrase() {
     iter="$1"
     for i in {1..1337}; do # 1337 rotations set here
