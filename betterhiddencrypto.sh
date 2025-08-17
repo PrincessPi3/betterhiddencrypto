@@ -58,7 +58,7 @@ EMERGENCY_NUKE() {
     # NUKE EVERYFUCKINGTHING IN THIS DIR
     # CRASH IT WITH NO SURVIVors
 
-    echo "NUKANNN"
+    echo "$dir_to_encrypt"
 
     # first phase just tosses the encryption headers (top 100 bytes) from the .volume.bin files and backups
     # this is done first and fast as possible for emergencies
