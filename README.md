@@ -1,5 +1,5 @@
 # betterhiddencrypto
-(better) Silly lil script for using [Argon2id](https://en.wikipedia.org/wiki/Argon2), [secure-delete  (srm)](https://github.com/BlackArch/secure-delete), AES265-GCM and tar to open and close an encrypted and compressed (bz2) and shred (srm) any lingering data immediately.
+(better) Silly lil script for using [Argon2id](https://en.wikipedia.org/wiki/Argon2), [secure-delete  (srm)](https://github.com/BlackArch/secure-delete), AES265-GCM and 7zip to redundantly and securely open and close an encrypted and compressed directory (7z) and shred (srm) any lingering data immediately following checks.
 
 ## Textwall about the frickin thing
 Encryption MY way!
@@ -9,6 +9,8 @@ For one, they are STILL using PMDKF2 as the KDF (Key Derivation Function, the al
 So, I selected the gigachad KDF, [Argon2id](https://en.wikipedia.org/wiki/Argon2) to generate the 256-bit key. It features appx. With variable cost settings for time, memory, parralellization, and with an added cryptographically securely randomly generated salt, it makes a very robust and attack resistant KDF.
   
 AES with 256bit key in GCM mode is used. GCM mode includes authtentication which is nice, and is considered one of the most secure AES modes.
+
+The compression and redundant encryption is via 7zip. The script generates a sha512 hash of the passphrase to make sure the passphrase for the 7z archive is statistically independant from the one used in the main encryption.
 
 The other glaring issue that the normie cryptography utilities had was the fact that when files are moved to the volume, there is no shredding of the "ghost" file at the location it camer from, and in some cases, even left data traes on the disk without securely shredding them to clean up.  
 To that end, I'm using the secure-delete package to secure wipe any temporary or ghost bytes off the record.  
@@ -31,21 +33,39 @@ smem is used to wipe unallocated RAM to ensure that no remaning traces of data a
 * **BE AWARE** When moving files from unencrypted drives to the encrypted arcive, **the original files may be recoverable from the original location** even if they are not visible. It is a best practice to shred empty space on that disk afterwords to ensure the orignal data is not forensically recoverable
 * Best practice is to disable networking when using hiddencrypto
 
-## Usage
-To install:
+## Installation
+Prerequisites:
+```
+sudo apt update
+sudo apt install 7z git secure-delete python3 ugrep
+```
+
+Installation:
 ```
 cd ~
 git clone https://github.com/PrincessPi3/betterhiddencrypto.git
 cd hiddencrypto
-bash hiddencrypto.sh install
+pip install -r requirements.txt
 ```
-  
-To encrypt:  
+
+## Usage
+1. Files to be encrypted are placed in [to_encrypt](./to_encrypt/README.md)
+2. [to_encrypt](./to_encrypt/README.md) will be shredded and gone byebye after each encryption and restored after each decryption
+3. Each time an encryption is run, it outputs `./.volume.bin` and backs up any existing `./.volume.bin` to `./.volume.bin.bak` if `./volume.bin.bak` is found it is backed up to [./volume_old](./.volume_old/README.md)
+
+Smart encrypt or decrypt  
+`bash hiddencrypto.sh`  
+
+Help:  
+`bash hiddencrypto.sh h` or  
+`bash hiddencrypto.sh help`  
+
+Encrypt explicitly:  
 `bash hiddencrypto.sh e`  or  
 `bash hiddencrypto.sh enc`  or  
 `bash betterhiddencrypto.sh encrypt`  
   
-To decrypt:  
+Decrypt explicitly:  
 `bash hiddencrypto.sh d`  or  
 `bash hiddencrypto.sh dec`  or  
 `bash hiddencrypto.sh decrypt`
