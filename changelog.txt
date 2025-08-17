@@ -11,3 +11,4 @@ improved readme
 added help function
 added cryptanalysis/pass_used_in_testing.txt as the passphrase ive been using in testing
 added cryptanalysis/to_encrypt_testing as a backup of the directories and files used as to_encrypt in testing
+used an iteration and salt system to improve the phase one digest. using 125 iteratinos with a randomly generated 16 byte salt appended to the archive and removed before decryption
