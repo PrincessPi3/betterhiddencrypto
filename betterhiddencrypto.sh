@@ -43,7 +43,7 @@ shred_dir() {
         # three iterations plus a zeroing and deletion then rm -rf to remove the directory structure
         # all the uses of shred redirect all output to /dev/null so that its silent af
         # also all find operatons on nukin shit excludes any dir named .git for speed
-        find -type d -name ".git" -prune -o "$1" -type f -exec shred --zero --remove --force {} \; 1>/dev/null 2>/dev/null
+        find -path ".git" -prune -o "$1" -type f -exec shred --zero --remove --force {} \; 1>/dev/null 2>/dev/null
         rm -rf "$1" 1>/dev/null 2>/dev/null
     elif [ -f "$1" ]; then # if its a file
         # three iterations plus a zeroing and deletion
@@ -58,11 +58,9 @@ EMERGENCY_NUKE() {
     # NUKE EVERYFUCKINGTHING IN THIS DIR
     # CRASH IT WITH NO SURVIVors
 
-    echo "$dir_to_encrypt"
-
     # first phase just tosses the encryption headers (top 100 bytes) from the .volume.bin files and backups
     # this is done first and fast as possible for emergencies
-    find . -type d -name ".git" -prune -o -type f -name "*.volume.bin*" -exec shred --size=100 --force {} \; # 1>/dev/null 2>/dev/null
+    find . -path ".git" -prune -o -type f -name "*.volume.bin*" -exec shred --size=100 --force {} \; # 1>/dev/null 2>/dev/null
 
     # next stage is to shred to_encrypt if it exists
     if [ -d "$dir_to_encrypt" ]; then
@@ -73,7 +71,7 @@ EMERGENCY_NUKE() {
 
 
     # third stage is to nuke any remaining dangling files explicitly
-    find . -type d -name ".git" -prune -o -type f -name "*.7z" -o -type f -name "*.bak*" -o -type f -name "*.tmp*" -exec shred --force {} \; # 1>/dev/null 2>/dev/null
+    find . -path ".git" -prune -o -type f -name "*.7z" -o -type f -name "*.bak*" -o -type f -name "*.tmp*" -exec shred --force {} \; # 1>/dev/null 2>/dev/null
 
     echo $?
 
