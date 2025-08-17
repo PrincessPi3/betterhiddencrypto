@@ -35,13 +35,13 @@ smem is used to wipe unallocated RAM to ensure that no remaning traces of data a
 * **WATCH OUT FOR CLOUD STORAGE** Cloud services and backup services like Microsuck OneDrive automatically backs up any files in the OneDrive folders to the cloud **INCLUDING UNENCRYPTED FILES WHILE THEY ARE IN CLEARTEXT**
 
 ## Installation
-Prerequisites:
+**Prerequisites**
 ```
 sudo apt update
 sudo apt install 7z git secure-delete python3 ugrep
 ```
 
-Installation:
+**Installation**
 ```
 cd ~
 git clone https://github.com/PrincessPi3/betterhiddencrypto.git
@@ -53,6 +53,9 @@ pip install -r requirements.txt
 1. Files to be encrypted are placed in [to_encrypt](./to_encrypt/README.md)
 2. [to_encrypt](./to_encrypt/README.md) will be shredded and gone byebye after each encryption and restored after each decryption
 3. Each time an encryption is run, it outputs `./.volume.bin` and backs up any existing `./.volume.bin` to `./.volume.bin.bak` if `./volume.bin.bak` is found it is backed up to [./volume_old](./.volume_old/README.md)
+
+**Passphrase Requirements**  
+20+ characters long with at least one of each lowercase letter, uppercase letter, digit, and special character  
 
 Smart encrypt or decrypt  
 `bash hiddencrypto.sh`  
