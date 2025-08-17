@@ -56,7 +56,7 @@ shred_dir() {
 
 EMERGENCY_NUKE() {
     # NUKE EVERYFUCKINGTHING IN THIS DIR
-    # CRASH IT WITH NO SURVIV
+    # CRASH IT WITH NO SURVIVors
 
     # first phase just tosses the encryption headers (top 100 bytes) from the .volume.bin files and backups
     # this is done first and fast as possible for emergencies
@@ -163,6 +163,8 @@ elif [ "$1" = "decrypt" -o "$1" = "dec" -o "$1" = "d" ]; then
     decrypty
 elif [ "$1" = "help" -o "$1" = "h" ]; then
     echo -e "\nUsage:\t\n\tEncrypt:\n\t\tbash betterhiddencrypto.sh e\n\t\tbash betterhiddencrypto.sh enc\n\t\tbash betterhiddencrypto.sh encrypt\n\tDecrypt:\n\t\tbash betterhiddencrypto.sh d\n\t\tbash betterhiddencrypto.sh dec\n\t\tbash betterhiddencrypto.sh decrypt\n\tHelp:\n\t\tbash betterhiddencrypto.sh h\n\t\tbash betterhiddencrypto.sh help\n\tSmart (default):\n\t\tbash betterhiddencrypto.sh\n"
+elif [ "$1" = "nuke" -o "$1" = "emergency_nuke" -o "$1" = "n" -o "$1" = "wipe" -o "$1" = "shred" -o "$1" = "emergency" ]; then
+    EMERGENCY_NUKE
 else
     # smart mode
     if [ -d "$dir_to_encrypt" ]; then
