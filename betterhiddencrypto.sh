@@ -66,15 +66,20 @@ encrypty(){
     echo "Successfully encrypted, Shredding Archive..."
     srm -rz "$encrypted_volume_name"
 
-    echo "Success: Encryption Done"
-
-    if [ -f "$encrypted_archive_name" ]; then
+    # check for bak archive and backup if exists
+    if [ -f "$encrypted_archive_name.bak" ]; then
         echo "Backing Up Old Archive"
         cp "$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.bak.$timestamp"
+    fi
 
+    # check for existing archive and backup if exists
+    if [ -f "$encrypted_archive_name" ]; then
         echo "Backing Up New Archive"
         cp "$encrypted_archive_name" "$backup_dir/$encrypted_archive_name.bak"
     fi
+
+    echo "Success: Encryption Done"
+
 }
 
 decrypty(){
