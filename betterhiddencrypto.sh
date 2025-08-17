@@ -58,7 +58,7 @@ encrypty(){
     echo "Successfully Compressed, Shredding Directory..."
     srm -rz "$dir_to_encrypt"
 
-    # echo "Successfully Shredded Directory, Encrypting. Please Input Passphrase..."
+    echo "Successfully Shredded Directory, Encrypting..."
     python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name"
 
     echo "Successfully Encrypted, Shredding Archive..."
@@ -68,10 +68,10 @@ encrypty(){
 
     if [ -f "$encrypted_archive_name" ]; then
         echo "Backing Up Old Archive"
-        cp ./.volume.bin.bak ./.volume_old/.volume.bin.bak.$timestamp
+        cp "./$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.$timestamp"
 
         echo "Backing Up New Archive"
-        cp ./.volume.bin ./.volume.bin.bak
+        cp "$encrypted_archive_name" "$backup_dir/$encrypted_archive_name.bak"
     fi
 }
 
