@@ -1,6 +1,8 @@
 hammer linux for leaks
 hammer WSL for leaks
 hammer memory for leaks
+hammer for directory information leaks
+full on forensic analysis
 work on antiforensics
 x rework readme
     x witches idea to append/prepend memorized string to stored pass for dual custody typr thinggg
