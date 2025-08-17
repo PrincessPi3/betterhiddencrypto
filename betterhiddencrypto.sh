@@ -200,7 +200,7 @@ decrypty(){
     read -s passphrase
 
     # retreive da salt
-    echo "Retrieving salt for first pass..."
+    echo -e "\n\tRetrieving salt for first pass..."
     salt=$(retrieve_7z_salt)
 
     # first comes the python crypt
