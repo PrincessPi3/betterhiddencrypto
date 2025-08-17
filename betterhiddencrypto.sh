@@ -1,23 +1,23 @@
 #!/bin/bash
-# packages: python3, secure-delete
+# packages: python3, secure-delete, 7z, ugrep, sha512sum
 
 # fail on error
 set -e # important to prevent data loss in event of a failure
 
-dir_to_encrypt=./to_encrypt
-encrypted_archive_name=./.volume.bin
-encrypted_volume_name=./.encrypted_volume.tar.bz2
-backup_dir=./.volume_old
+dir_to_encrypt="./to_encrypt"
+encrypted_archive_name="./.volume.bin"
+encrypted_volume_name="./.encrypted_volume.tar.bz2"
+backup_dir="./.volume_old"
 
 environment_check() {
-    if ! [ -d $dir_to_encrypt ]; then
+    if ! [ -d "$dir_to_encrypt" ]; then
         echo "$dir_to_encrypt Not Found, Creating..."
-        mkdir $dir_to_encrypt
+        mkdir "$dir_to_encrypt" 
 	fi
 
-    if ! [ -d $backup_dir ]; then
+    if ! [ -d "$backup_dir" ]; then
 		echo "$backup_dir Not Found, Creating..."
-		mkdir $backup_dir
+		mkdir "$backup_dir"
 	fi
 
     if [ -f *.bz2 ]; then
@@ -26,12 +26,13 @@ environment_check() {
     fi
 
     # used to use command -v instead of which and i dont remember why
-    if ! [ -f "$(which git)" ] && [ -f "$(which tar)" ] && [ -f "$(which python)" ] && [ -f "$(which srm)" ]; then
-        echo "Needed Applications Not Found, Installing..."
-        sudo apt update
-        sudo apt install git secure-delete tar ugrep python3 -y
-        pip install -r requirements.txt
-        echo "Success: Installed"
+    if ! [ -f "$(which git)" ] && [ -f "$(which 7z)" ] && [ -f "$(which python)" ] && [ -f "$(which srm)" ] && [ -f "$(which sha512sum)" ]; then
+        echo "Needed Applications Not Found!"
+        echo "Depends on git, 7z, ugrep, python3, and sha512sum"
+        # sudo apt update
+        # sudo apt install git secure-delete 7z ugrep python3 -y
+        # pip install -r requirements.txt
+        # echo "Success: Installed"
     fi
 }
 
@@ -49,20 +50,24 @@ encrypty(){
     fi
 
     echo "Compressing Directory..."
-    tar cfjW $encrypted_volume_name $dir_to_encrypt # added W to verify arvhive befe4 shredding dir
+    # tar cfjW $encrypted_volume_name $dir_to_encrypt # added W to verify arvhive befe4 shredding dir
+
+    # digest the passphrase to add as a statistically indepentant 7zip passphrase
+    echo "$passphrase" | sha512sum
+    7z a -p"$passphrase" -mhe=on "$encrypted_volume_name" "$dir_to_encrypt"
 
     echo "Successfully Compressed, Shredding Directory..."
-    srm -rz $dir_to_encrypt
+    srm -rz "$dir_to_encrypt"
 
     # echo "Successfully Shredded Directory, Encrypting. Please Input Passphrase..."
-    python betterhiddencrypto.py enc $passphrase $encrypted_volume_name $encrypted_archive_name
+    python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name"
 
     echo "Successfully Encrypted, Shredding Archive..."
-    srm -rz $encrypted_volume_name
+    srm -rz "$encrypted_volume_name"
 
     echo "Success: Encryption Done"
 
-    if [ -f $encrypted_archive_name ]; then
+    if [ -f "$encrypted_archive_name" ]; then
         echo "Backing Up Old Archive"
         cp ./.volume.bin.bak ./.volume_old/.volume.bin.bak.$timestamp
 
@@ -79,7 +84,7 @@ decrypty(){
     python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
 
     echo "Successfully Decrypted Encrypted Archive, Decompressing..."
-    tar xfj "$encrypted_volume_name"
+    7z x -p"$passphrase" "$encrypted_volume_name"
 
     echo "Successfully Decrypted, Shredding Encrypted Archive..."
     srm -rz "$encrypted_volume_name"
