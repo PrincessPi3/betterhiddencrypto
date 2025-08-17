@@ -92,7 +92,7 @@ decrypty(){
     echo -e "\nEnter Passphrase: "
     read -s passphrase
 
-    echo -e "\tDecrypting first pass..."
+    echo -e "\n\tDecrypting first pass..."
     python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
 
     echo -e "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
