@@ -42,13 +42,13 @@ encrypty(){
     echo "ENCRYPTING Starting..."
     echo -e "\nEnter Passphrase: "
     read -s passphrase1
-    echo -e "Repeat Passphrase: \n"
+    echo -e "Repeat Passphrase:"
     read -s passphrase2
     if [ "$passphrase1" != "$passphrase2" ]; then
         echo -e "\nPassphrases do not match! Exiting!\n"
         exit 1
     else
-        echo -e "\tPasswords match!"
+        echo -e "\n\tPasswords match!"
         passphrase=$passphrase1
     fi
 
