@@ -24,3 +24,5 @@ x    or find better alternative mayhaps
 test install instructions
 add nuke options to help mode
 make nuke silent
+verify salts are being used and stored and in digest
+sanity check shit and error check
