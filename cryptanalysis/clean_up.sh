@@ -6,7 +6,7 @@ if [ "$confirm" != "y" ]; then
 fi
 
 echo "Cleaning all files"
-find . -type f -name "*.tmp" -exec rm -f {} \;
-find . -type f -name "*.bak.*" -exec rm -f {} \;
-find . -type f -name ".volume*" -exec rm -f {} \;
+find .. -type f -name "*.tmp" -exec rm -f {} \;
+find .. -type f -name "*.bak.*" -exec rm -f {} \;
+find .. -type f -name ".volume*" -exec rm -f {} \;
 echo "Done!"
