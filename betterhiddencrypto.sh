@@ -72,17 +72,17 @@ encrypty(){
 
     # check for bak archive and backup if exists
     if [ -f "$encrypted_archive_name.bak" ]; then
-        echo "Backing Up Old Archive"
+        echo "Backing up old archive"
         cp "$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.bak.$timestamp"
     fi
 
     # check for existing archive and backup if exists
     if [ -f "$encrypted_archive_name" ]; then
-        echo "Backing Up New Archive"
+        echo "Backing up new archive"
         cp "$encrypted_archive_name" "$backup_dir/$encrypted_archive_name.bak"
     fi
 
-    echo "Success: Encryption Done"
+    echo "Success: Encryption done"
 
 }
 
@@ -93,15 +93,15 @@ decrypty(){
     echo "Decrypting first pass..."
     python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
 
-    echo "Successfully decrypted first pass encryption, decompressing second pass decrypting..."
+    echo "Successfully decrypted first pass encryption, Decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
     digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
     7z x -p"$digest_passphrase" "$encrypted_volume_name" 1>/dev/null
 
-    echo "Successfully Decrypted, Shredding Encrypted Archive..."
+    echo "Successfully decrypted, Shredding encrypted archive..."
     srm -rz "$encrypted_volume_name"
 
-    echo "Success: Decryption Done"
+    echo "Success: Decryption done"
 }
 
 # run at each start
