@@ -40,8 +40,10 @@ encrypty(){
     timestamp=$(date +"%d%m%Y-%H%M")
 
     echo "ENCRYPTING Starting..."
-    read -s -p "\nEnter Passphrase: " passphrase1
-    read -s -p "\nRepeat: " passphrase2
+    echo -e "\nEnter Passphrase: "
+    read -s passphrase1
+    echo -e "\nRepeat Passphrase: "
+    read -s passphrase2
     if [ "$passphrase1" != "$passphrase2" ]; then
         echo -e "\nPassphrases do not match! Exiting!\n"
         exit 1
@@ -49,56 +51,57 @@ encrypty(){
         passphrase=$passphrase1
     fi
 
-    echo "Compressing Directory and performing first pass encryption..."
+    echo -e "\tCompressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
     digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
     7z a -p"$digest_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
 
-    echo "Successfully compressed, Testing archive integrity..."
+    echo -e "\tSuccessfully compressed, Testing archive integrity..."
     7z t -p"$digest_passphrase" "$encrypted_volume_name" 1>/dev/null # do this silently unless fail 
     if [ $? -ne 0 ]; then # explicitly exit on fail integrity check
         echo "Archive integrity test failed!"
         exit 1
     fi
 
-    echo "Archive passed check, Shredding directory..."
+    echo -e "\tArchive passed check, Shredding directory..."
     srm -rz "$dir_to_encrypt"
 
-    echo "Successfully shredded directory, Running second pass encryption..."
+    echo -e "\tSuccessfully shredded directory, Running second pass encryption..."
     python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name"
 
-    echo "Successfully encrypted, Shredding Archive..."
+    echo -e "\tSuccessfully encrypted, Shredding Archive..."
     srm -rz "$encrypted_volume_name"
 
     # check for bak archive and backup if exists
     if [ -f "$encrypted_archive_name.bak" ]; then
-        echo "Backing up old archive"
+        echo -e "\tBacking up old archive"
         cp "$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.bak.$timestamp"
     fi
 
     # check for existing archive and backup if exists
     if [ -f "$encrypted_archive_name" ]; then
-        echo "Backing up new archive"
+        echo -e "\tBacking up new archive"
         cp "$encrypted_archive_name" "$backup_dir/$encrypted_archive_name.bak"
     fi
 
-    echo "Success: Encryption done"
+    echo -e "\nSuccess: Encryption done"
 
 }
 
 decrypty(){
     echo "DECRYPTION Starting..."
-    read -s -p "Enter Passphrase: " passphrase
+    echo -e "\nEnter Passphrase: "
+    read -s passphrase
 
-    echo "Decrypting first pass..."
+    echo -e "\tDecrypting first pass..."
     python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
 
-    echo "Successfully decrypted first pass encryption, Decompressing second pass decrypting..."
+    echo -e "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
     digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
     7z x -p"$digest_passphrase" "$encrypted_volume_name" 1>/dev/null
 
-    echo "Successfully decrypted, Shredding encrypted archive..."
+    echo -e "\tSuccessfully decrypted, Shredding encrypted archive..."
     srm -rz "$encrypted_volume_name"
 
     echo "Success: Decryption done"
