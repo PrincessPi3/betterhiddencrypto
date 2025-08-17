@@ -91,10 +91,17 @@ EMERGENCY_NUKE() {
     fi
 }
 
-# todo: improve this maybe with iterations and salt
+# usage:
+# digest_passphrase <string passphrase> <int iterations>
 digest_passphrase() {
-    echo "$1" | sha512sum | awk '{print $1}'
+    iter="$1"
+    for i in {1..$2}; do
+        iter=$("$iter" | sha512sum | awk '{print $1}')
+        echo $iter
+    done
 }
+
+digest_passphrase "opliliergerfg" 50
 
 encrypty(){
     echo "ENCRYPTING Starting..."
