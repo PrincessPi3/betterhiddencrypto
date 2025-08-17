@@ -40,10 +40,10 @@ encrypty(){
     timestamp=$(date +"%d%m%Y-%H%M")
 
     echo "ENCRYPTING Starting..."
-    read -s -p "Enter Passphrase: " passphrase1
-    read -s -p "Repeat: " passphrase2
+    read -s -p "\nEnter Passphrase: " passphrase1
+    read -s -p "\nRepeat: " passphrase2
     if [ "$passphrase1" != "$passphrase2" ]; then
-        echo "Passphrases do not match!"
+        echo -e "\nPassphrases do not match! Exiting!\n"
         exit 1
     else
         passphrase=$passphrase1
