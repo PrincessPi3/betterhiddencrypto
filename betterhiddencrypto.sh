@@ -95,7 +95,7 @@ EMERGENCY_NUKE() {
 # digest_passphrase <string passphrase>
 digest_passphrase() {
     iter="$1"
-    for i in {1..50}; do # 50 rotations set here
+    for i in {1..1337}; do # 1337 rotations set here
         iter=$(echo "$iter" | sha512sum | awk '{print $1}')
         echo -e "$iter\n"
     done
