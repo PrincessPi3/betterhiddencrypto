@@ -103,7 +103,7 @@ create_and_add_salt() {
 }
 
 # usage: digest_passphrase <string passphrase>
-digest_passphrase() {
+7z_digest_passphrase() {
     iter="$1"
     for i in {1..1337}; do # 1337 rotations set here
         iter=$(echo "$iter" | sha512sum | awk '{print $1}')
@@ -131,7 +131,7 @@ encrypty(){
 
     echo -e "\tCompressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
-    digested_passphrase=$(digest_passphrase "$passphrase")
+    digested_passphrase=$(7z_digest_passphrase "$passphrase")
     7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
 
     # test the new archive for integrity before nuking shit
@@ -182,7 +182,7 @@ decrypty(){
     # do the 7z decryption/decompression
     echo -e "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
-    digested_passphrase=$(digest_passphrase "$passphrase")
+    digested_passphrase=$(7z_digest_passphrase "$passphrase")
     7z x -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null
 
     # shred the 7z file
