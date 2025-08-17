@@ -104,7 +104,7 @@ decrypty(){
     echo -e "\tSuccessfully decrypted, Shredding encrypted archive..."
     srm -rz "$encrypted_volume_name"
 
-    echo "Success: Decryption done"
+    echo -e "\nSuccess: Decryption done"
 }
 
 # run at each start
@@ -114,6 +114,15 @@ if [ "$1" = "encrypt" -o "$1" = "enc" -o "$1" = "e" ]; then
     encrypty
 elif [ "$1" = "decrypt" -o "$1" = "dec" -o "$1" = "d" ]; then
     decrypty
+elif [ "$1" = "help" -o "$1" = "h" ]; then
+    echo -e "\nUsage:\t\n\tEncrypt:\n\t\tbash betterhiddencrypto.sh e\n\t\tbash betterhiddencrypto.sh enc\n\t\tbash betterhiddencrypto.sh encrypt\n\tDecrypt:\n\t\tbash betterhiddencrypto.sh d\n\t\tbash betterhiddencrypto.sh dec\n\t\tbash betterhiddencrypto.sh decrypt"
 else
-	echo -e "\nUsage:\t\n\tEncrypt:\n\t\tbash betterhiddencrypto.sh e\n\t\tbash betterhiddencrypto.sh enc\n\t\tbash betterhiddencrypto.sh encrypt\n\tDecrypt:\n\t\tbash betterhiddencrypto.sh d\n\t\tbash betterhiddencrypto.sh dec\n\t\tbash betterhiddencrypto.sh decrypt"
+    # smart mode
+    if [ -f "$encrypted_archive_name" ]; then
+        echo -e "\tFound existing encrypted archive, attempting decryption..."
+        decrypty
+    else
+        echo -e "\tNo encrypted archive found, attempting encryption..."
+        encrypty
+    fi
 fi
