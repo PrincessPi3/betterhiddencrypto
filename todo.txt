@@ -55,6 +55,8 @@ add known weaknesses to cryptanalysis readme
             seek commentary
 hidden volume/rubbehose type feature?
 duress pass?
+some type of dead man's switch to nuke?
+tamper evident/tamper nuke?
 refactor into platform independant pure python?
     compiled python exe?
     gui for nomies? (REEEEE)
