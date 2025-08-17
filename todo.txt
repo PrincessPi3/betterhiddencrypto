@@ -9,6 +9,7 @@ x rework readme
 readme
     flesh out how the modes work
     add nuke and antiforensics details
+    prettify it
 x add password security 
 add breached passwords check
 X shred all volume crypto headers mode (shred --zero --remove --size=N (bytes))
