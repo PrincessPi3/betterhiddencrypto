@@ -16,13 +16,13 @@ environment_check() {
 	# fi
 
     if ! [ -d "$backup_dir" ]; then
-		echo "$backup_dir Not Found, Creating..."
+		echo "$backup_dir Not found, creating..."
 		mkdir "$backup_dir"
 	fi
 
     if [ -f *.7z ]; then
         echo "WARNING! DANGLING UNENCRYPTED ARCHIVE FOUND"
-        ls -A *.7z
+        ls -AR ./*.7z
     fi
 
     # used to use command -v instead of which and i dont remember why
@@ -37,8 +37,6 @@ environment_check() {
 }
 
 encrypty(){
-    timestamp=$(date +"%d%m%Y-%H%M")
-
     echo "ENCRYPTING Starting..."
     echo -e "\nEnter Passphrase: "
     read -s passphrase1
@@ -76,7 +74,7 @@ encrypty(){
     # check for bak archive and backup if exists
     if [ -f "$encrypted_archive_name.bak" ]; then
         echo -e "\tBacking up old archive ($encrypted_archive_name.bak)"
-        cp "$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.bak.$timestamp"
+        cp "$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.bak.$(date +"%d%m%Y-%H%M")"
     fi
 
     # check for existing archive and backup if exists
