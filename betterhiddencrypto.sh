@@ -55,7 +55,7 @@ encrypty(){
     7z a -p"$digest_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
 
     echo "Successfully compressed, Testing archive integrity..."
-    7z t -p"$digest_passphrase" "$encrypted_volume_name" >/dev/null # do this silently unless fail 
+    7z t -p"$digest_passphrase" "$encrypted_volume_name" 1>/dev/null # do this silently unless fail 
     if [ $? -ne 0 ]; then # explicitly exit on fail integrity check
         echo "Archive integrity test failed!"
         exit 1
@@ -96,7 +96,7 @@ decrypty(){
     echo "Successfully decrypted first pass encryption, decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
     digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
-    7z x -p"$digest_passphrase" "$encrypted_volume_name"
+    7z x -p"$digest_passphrase" "$encrypted_volume_name" 1>/dev/null
 
     echo "Successfully Decrypted, Shredding Encrypted Archive..."
     srm -rz "$encrypted_volume_name"
