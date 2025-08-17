@@ -6,7 +6,7 @@ if [ "$confirm" != "y" ]; then
 fi
 
 echo "Cleaning all files"
-find .. -path "../.git" -prune -o  -type f -name "*.tmp" -exec rm -f {} \;
-find .. -path "../.git" -prune -o  -type f -name "*.bak*" -exec rm -f {} \;
-find .. -path "../.git" -prune -o -type f -name ".volume*" -exec rm -f {} \;
+find . -type d -name ".git" -prune -o  -type f -name "*.tmp" -exec rm -f {} \;
+find . -type d -name ".git" -prune -o  -type f -name "*.bak*" -exec rm -f {} \;
+find . -type d -name ".git" -prune -o -type f -name ".volume*" -exec rm -f {} \;
 echo "Done!"
