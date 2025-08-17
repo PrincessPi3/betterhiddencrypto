@@ -117,15 +117,15 @@ if __name__ == "__main__":
     # check password strength before proceeding
     if not check_passphrase(passphrase):
         print("Weak password. Exiting.")
-        exit(1)
+        exit(1) # explicitly fail on weak password
     # encrypt mode
     if mode in ("encrypt", "enc", "e"):
         encrypt_file_gcm(input_file, output_file, passphrase)
-        print(f"Done: {input_file} encrypted into {output_file}")
+        # print(f"Done: {input_file} encrypted into {output_file}")
     # decrypt mode
     elif mode in ("decrypt", "dec", "d"):
         decrypt_file_gcm(input_file, output_file, passphrase)
-        print(f"Done: {input_file} decrypted into {output_file}")
+        # print(f"Done: {input_file} decrypted into {output_file}")
 # failure mode
 else:
     print("Invalid mode. Exiting.")
