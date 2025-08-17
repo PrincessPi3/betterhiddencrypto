@@ -1,9 +1,11 @@
 #!/bin/bash
 # packages: python3, pip, 7z, ugrep, coreutils
+# pip packages: pycryptodome, argon2-cffi
 
 # fail on error
 set -e # important to prevent data loss in event of a failure
 
+# CHANGE da config here if ya like
 dir_to_encrypt="./to_encrypt"
 encrypted_archive_name="./.volume.bin"
 encrypted_volume_name="./.encrypted_volume.7z"
@@ -31,7 +33,7 @@ environment_check() {
     fi
 
     # used to use command -v instead of which and i dont remember why
-    if ! [ -f "$(which git)" ] && [ -f "$(which 7z)" ] && [ -f "$(which python)" ] && [ -f "$(which srm)" ] && [ -f "$(which sha512sum)" ]; then
+    if ! [ -f "$(which git)" ] && [ -f "$(which 7z)" ] && [ -f "$(which python)" ] && [ -f "$(which shred)" ] && [ -f "$(which sha512sum)" ] && [ -f "$(which sha256sum)" ]; then
         echo "Needed Applications Not Found!"
         echo "Depends on git, 7z, ugrep, python3, and sha512sum"
         # todo: maybe make a clever installer function
@@ -89,15 +91,22 @@ EMERGENCY_NUKE() {
     fi
 }
 
+# todo: improve this maybe with iterations and salt
+digest_passphrase() {
+    echo "$1" | sha512sum | awk '{print $1}'
+}
+
 encrypty(){
     echo "ENCRYPTING Starting..."
+
+    # check da passphrases for match
     echo -e "\nEnter Passphrase: "
     read -s passphrase1
     echo -e "Repeat Passphrase:"
     read -s passphrase2
     if [ "$passphrase1" != "$passphrase2" ]; then
         echo -e "\nPassphrases do not match! Exiting!\n"
-        exit 1
+        exit 1 # otherwise explicitly fail
     else
         echo -e "\n\tPasswords match!"
         passphrase=$passphrase1
@@ -105,24 +114,28 @@ encrypty(){
 
     echo -e "\tCompressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
-    digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
-    7z a -p"$digest_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
+    digested_passphrase=$(digest_passphrase "$passphrase")
+    7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
 
+    # test the new archive for integrity before nuking shit
     echo -e "\tSuccessfully compressed, Testing archive integrity..."
-    7z t -p"$digest_passphrase" "$encrypted_volume_name" 1>/dev/null # do this silently unless fail 
+    7z t -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null # do this silently unless fail
     if [ $? -ne 0 ]; then # explicitly exit on fail integrity check
         echo "Archive integrity test failed!"
         exit 1
     fi
 
+    # nuke to_encrypt dir
     echo -e "\tArchive passed check, Shredding directory..."
     shred_dir "$dir_to_encrypt"
 
+    # do the second pass encryption
     echo -e "\tSuccessfully shredded directory, Running second pass encryption..."
     python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name"
 
+    # shred da 7z file
     echo -e "\tSuccessfully encrypted, Shredding Archive..."
-    shred -z "$encrypted_volume_name"
+    shred_dir -z "$encrypted_volume_name"
 
     # check for bak archive and backup if exists
     if [ -f "$encrypted_archive_name.bak" ]; then
@@ -145,16 +158,19 @@ decrypty(){
     echo -e "\nEnter Passphrase: "
     read -s passphrase
 
+    # first comes the python crypt
     echo -e "\n\tDecrypting first pass..."
     python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
 
+    # do the 7z decryption/decompression
     echo -e "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
-    digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
-    7z x -p"$digest_passphrase" "$encrypted_volume_name" 1>/dev/null
+    digested_passphrase=$(digest_passphrase "$passphrase")
+    7z x -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null
 
+    # shred the 7z file
     echo -e "\tSuccessfully decrypted, Shredding encrypted archive..."
-    srm -rz "$encrypted_volume_name"
+    shred_dir "$encrypted_volume_name"
 
     echo -e "\nSuccess: Decryption done! Decrypted to $dir_to_encrypt"
 }
