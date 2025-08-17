@@ -92,16 +92,12 @@ EMERGENCY_NUKE() {
     fi
 }
 
-# salt shit very much wip
-
-# working
 # usage my_salt=$(new_7z_salt)
 new_7z_salt() {
     # nice solid cryptographically secure rng asssss
     openssl rand $salt_length # echo the salt bytes
 }
 
-# workinmg
 # todo sanity checks and silent it
 append_7z_salt() {
     salt="$1"
@@ -109,7 +105,6 @@ append_7z_salt() {
     printf "$salt" >> "$encrypted_archive_name"
 }
 
-# workanm
 # todo sanity checks and silent it
 retrieve_7z_salt() {
     # get the stored salt
@@ -118,7 +113,6 @@ retrieve_7z_salt() {
     truncate -s -$salt_length "$encrypted_archive_name"
 }
 
-# workan
 # todo: sanity checks
 # usage: digest_passphrase <string passphrase> <bytes raw salt>
 # like my_digest=$(digest_passphrase "my_passphrase")
