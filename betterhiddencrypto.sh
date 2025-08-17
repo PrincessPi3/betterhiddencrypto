@@ -192,8 +192,7 @@ decrypty(){
     echo -e "\nSuccess: Decryption done! Decrypted to $dir_to_encrypt"
 }
 
-# run at each start
-
+# main
 # operating modes
 if [ "$1" = "encrypt" -o "$1" = "enc" -o "$1" = "e" ]; then
     # encrypt mode
