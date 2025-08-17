@@ -107,11 +107,8 @@ create_and_add_salt() {
     iter="$1"
     for i in {1..1337}; do # 1337 rotations set here
         iter=$(echo "$iter" | sha512sum | awk '{print $1}')
-        echo -e "$iter\n"
     done
 }
-
-digest_passphrase "opliliergerfg"
 
 encrypty(){
     echo "ENCRYPTING Starting..."
