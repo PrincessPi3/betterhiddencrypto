@@ -42,12 +42,13 @@ encrypty(){
     echo "ENCRYPTING Starting..."
     echo -e "\nEnter Passphrase: "
     read -s passphrase1
-    echo -e "Repeat Passphrase: "
+    echo -e "Repeat Passphrase: \n"
     read -s passphrase2
     if [ "$passphrase1" != "$passphrase2" ]; then
         echo -e "\nPassphrases do not match! Exiting!\n"
         exit 1
     else
+        echo -e "\tPasswords match!"
         passphrase=$passphrase1
     fi
 
@@ -120,10 +121,10 @@ elif [ "$1" = "help" -o "$1" = "h" ]; then
 else
     # smart mode
     if [ -d "$dir_to_encrypt" ]; then
-        echo "Found existing directory to encrypt ($dir_to_encrypt), defaulting to encryption..."
+        echo -e "Found existing directory to encrypt ($dir_to_encrypt), defaulting to encryption...\n"
         encrypty
     else
-        echo "No directory found to encrypt ($dir_to_encrypt), defaulting to decryption..."
+        echo -e "No directory found to encrypt ($dir_to_encrypt), defaulting to decryption...\n"
         decrypty
     fi
 fi
