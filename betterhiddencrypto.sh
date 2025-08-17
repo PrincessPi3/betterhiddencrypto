@@ -110,6 +110,7 @@ decrypty(){
 # run at each start
 environment_check
 
+# opreating modez
 if [ "$1" = "encrypt" -o "$1" = "enc" -o "$1" = "e" ]; then
     encrypty
 elif [ "$1" = "decrypt" -o "$1" = "dec" -o "$1" = "d" ]; then
@@ -119,10 +120,10 @@ elif [ "$1" = "help" -o "$1" = "h" ]; then
 else
     # smart mode
     if [ -d "$dir_to_encrypt" ]; then
-        echo -e "\tFound existing directory to encrypt ($dir_to_encrypt), defaulting to encryption..."
+        echo "Found existing directory to encrypt ($dir_to_encrypt), defaulting to encryption..."
         encrypty
     else
-        echo -e "\tNo directory found to encrypt ($dir_to_encrypt), defaulting to decryption..."
+        echo "No directory found to encrypt ($dir_to_encrypt), defaulting to decryption..."
         decrypty
     fi
 fi
