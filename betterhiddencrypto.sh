@@ -2,7 +2,7 @@
 # packages: python3, secure-delete
 
 # fail on error
-set -e
+set -e # important to prevent data loss in event of a failure
 
 dir_to_encrypt=./to_encrypt
 encrypted_archive_name=./.volume.bin
@@ -25,10 +25,8 @@ environment_check() {
         ls -A *.bz2
     fi
 
-
-
     # used to use command -v instead of which and i dont remember why
-    if ! [ -f "$(which git)" ] && [ -f "$(which tar)" ] && [ -f "$(which python)" ]; then
+    if ! [ -f "$(which git)" ] && [ -f "$(which tar)" ] && [ -f "$(which python)" ] && [ -f "$(which srm)" ]; then
         echo "Needed Applications Not Found, Installing..."
         sudo apt update
         sudo apt install git secure-delete tar ugrep python3 -y
@@ -51,7 +49,7 @@ encrypty(){
     fi
 
     echo "Compressing Directory..."
-    tar cfj $encrypted_volume_name $dir_to_encrypt
+    tar cfjW $encrypted_volume_name $dir_to_encrypt # added W to verify arvhive befe4 shredding dir
 
     echo "Successfully Compressed, Shredding Directory..."
     srm -rz $dir_to_encrypt
@@ -81,12 +79,12 @@ decrypty(){
     python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
 
     echo "Successfully Decrypted Encrypted Archive, Decompressing..."
-    tar xfjW "$encrypted_volume_name" # added W to verify arvhive
+    tar xfj "$encrypted_volume_name"
 
     echo "Successfully Decrypted, Shredding Encrypted Archive..."
     srm -rz "$encrypted_volume_name"
 
-    echo "Success: Done"
+    echo "Success: Decryption Done"
 }
 
 # run at each start
@@ -96,8 +94,6 @@ if [ "$1" = "encrypt" -o "$1" = "enc" -o "$1" = "e" ]; then
     encrypty
 elif [ "$1" = "decrypt" -o "$1" = "dec" -o "$1" = "d" ]; then
     decrypty
-
-	echo "Success: Ready to use"
 else
 	echo -e "\nUsage:\t\n\tEncrypt:\n\t\tbash betterhiddencrypto.sh e\n\t\tbash betterhiddencrypto.sh enc\n\t\tbash betterhiddencrypto.sh encrypt\n\tDecrypt:\n\t\tbash betterhiddencrypto.sh d\n\t\tbash betterhiddencrypto.sh dec\n\t\tbash betterhiddencrypto.sh decrypt"
 fi
