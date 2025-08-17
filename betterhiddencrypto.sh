@@ -4,7 +4,7 @@
 # fail on error
 set -e # important to prevent data loss in event of a failure
 
-dir_to_encrypt="to_encrypt"
+dir_to_encrypt="./to_encrypt"
 encrypted_archive_name="./.volume.bin"
 encrypted_volume_name="./.encrypted_volume.7z"
 backup_dir="./.volume_old"
@@ -67,17 +67,24 @@ EMERGENCY_NUKE() {
     # next stage is to shred to_encrypt if it exists
     if [ -d "$dir_to_encrypt" ]; then
         shred_dir "$dir_to_encrypt" # 1>/dev/null 2>/dev/null
-        echo $?
     fi
+
+    echo $?
+
 
     # third stage is to nuke any remaining dangling files explicitly
     find . -type d -name ".git" -prune -o -type f -name "*.7z" -o -type f -name "*.bak*" -o -type f -name "*.tmp*" -exec shred --force {} \; # 1>/dev/null 2>/dev/null
 
+    echo $?
+
     # third stage is to go log the current dir's name, go up a directory, and shred everyfucking thing remaining
     # all dis shit is done silently fuck errors
     current_dir=$(basename "$PWD") # 1>/dev/null 2>/dev/null
+    echo $?
     cd .. # 1>/dev/null 2>/dev/null
+    echo $?
     shred_dir "$current_dir" # 1>/dev/null 2>/dev/null
+    echo $?
 
     # optionally reboot immediately to wipe memory
     # runs when called with any argument at all
