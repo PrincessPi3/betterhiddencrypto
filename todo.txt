@@ -1,3 +1,7 @@
+hammer offline card for leaked bytes
+    also leaked partial bytes
+    also do hexdump analysis of the file system to try and find any remnants of empty directories
+        figure out some way to make them vanish (srm again?)
 hammer linux for leaks
 hammer WSL for leaks
 hammer memory for leaks
@@ -49,10 +53,6 @@ add known weaknesses to cryptanalysis readme
             seek commentary
         discuss the 7z being used and the security threats involved in that
             seek commentary
-hammer offline card for leaked bytes
-    also leaked partial bytes
-    also do hexdump analysis of the file system to try and find any remnants of empty directories
-        figure out some way to make them vanish (srm again?)
 refactor into platform independant pure python?
     compiled python exe?
     gui for nomies? (REEEEE)
