@@ -104,12 +104,10 @@ create_and_add_salt() {
 
 # usage: digest_passphrase <string passphrase>
 7z_digest_passphrase() {
-    echo "Digesting passphrase phase one"
     iter="$1"
     for i in {1..1337}; do # 1337 rotations set here
         iter=$(echo "$iter" | sha512sum | awk '{print $1}')
     done
-    echo "Done digesting passphrase phase one!"
 }
 
 encrypty(){
@@ -130,6 +128,7 @@ encrypty(){
 
     echo -e "\tCompressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
+    echo "Digesting passphrase phase 1..."
     digested_passphrase=$(7z_digest_passphrase "$passphrase")
     7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
 
@@ -155,8 +154,9 @@ encrypty(){
 
     # check for bak archive and backup if exists
     if [ -f "$encrypted_archive_name.bak" ]; then
-        echo -e "\tBacking up old archive ($encrypted_archive_name.bak)"
-        cp "$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.bak.$(date +"%d%m%Y-%H%M")"
+        timestamp=$(date +"%d%m%Y-%H%M")
+        echo -e "\tBacking up old archive ($encrypted_archive_name.bak.$timestamp)"
+        cp "$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.bak.$timestamp"
     fi
 
     # check for existing archive and backup if exists
@@ -181,6 +181,7 @@ decrypty(){
     # do the 7z decryption/decompression
     echo -e "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
+    echo "Digesting passphrase phase 1..."
     digested_passphrase=$(7z_digest_passphrase "$passphrase")
     7z x -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null
 
@@ -192,32 +193,38 @@ decrypty(){
 }
 
 # run at each start
-environment_check
 
 # operating modes
 if [ "$1" = "encrypt" -o "$1" = "enc" -o "$1" = "e" ]; then
     # encrypt mode
+    environment_check
     encrypty
 elif [ "$1" = "decrypt" -o "$1" = "dec" -o "$1" = "d" ]; then
     # decrypt mode
+    environment_check
     decrypty
 elif [ "$1" = "help" -o "$1" = "h" ]; then
     # halp moed
+    # no environment check
     echo -e "\nUsage:\t\n\tEncrypt:\n\t\tbash betterhiddencrypto.sh e\n\t\tbash betterhiddencrypto.sh enc\n\t\tbash betterhiddencrypto.sh encrypt\n\tDecrypt:\n\t\tbash betterhiddencrypto.sh d\n\t\tbash betterhiddencrypto.sh dec\n\t\tbash betterhiddencrypto.sh decrypt\n\tHelp:\n\t\tbash betterhiddencrypto.sh h\n\t\tbash betterhiddencrypto.sh help\n\tSmart (default):\n\t\tbash betterhiddencrypto.sh\n"
 elif [ "$1" = "nuke" -o "$1" = "emergency_nuke" -o "$1" = "n" -o "$1" = "wipe" -o "$1" = "shred" -o "$1" = "emergency" ]; then
     # emergency nuke mode
+    # no environment check
     EMERGENCY_NUKE
 elif [ "$1" = "nukereboot" -o "$1" = "nr" -o "$1" = "reboot" -o "$1" = "shutdown" -o "$1" = "killitwithfire" -o "$1" = "ns" ]; then
     # NUKE SHUTDOWN MODE
+    # no environment check
     EMERGENCY_NUKE KILLITWITHFIRE
 else
     # smart mode
     if [ -d "$dir_to_encrypt" ]; then
         # smart mkode encrypt
+        environment_check
         echo -e "Found existing directory to encrypt ($dir_to_encrypt), defaulting to encryption...\n"
         encrypty
     else
         # smart mode decryption
+    environment_check
         echo -e "No directory found to encrypt ($dir_to_encrypt), defaulting to decryption...\n"
         decrypty
     fi
