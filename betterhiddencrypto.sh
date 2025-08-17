@@ -10,27 +10,33 @@ encrypted_volume_name="./.encrypted_volume.7z"
 backup_dir="./.volume_old"
 
 environment_check() {
-    # if ! [ -d "$dir_to_encrypt" ] && [ -f "$encrypted_archive_name" ]; then
-    #     echo "$dir_to_encrypt and $encrypted_archive_name Not Found, Creating..."
-    #     mkdir "$dir_to_encrypt" 
-	# fi
+    # chezh em if both dir and archive dont exist
+    if ! [ -d "$dir_to_encrypt" ] && ! [ -f "$encrypted_archive_name" ]; then
+        echo "$dir_to_encrypt and $encrypted_archive_name not found, Creating $dir_to_encrypt..."
+        mkdir "$dir_to_encrypt"
+    fi
 
+    # cerate backup dir if missin
     if ! [ -d "$backup_dir" ]; then
-		echo "$backup_dir Not found, creating..."
+        echo "$backup_dir not found, creating..."
 		mkdir "$backup_dir"
 	fi
 
+    # check for any dangling .7z files
+    # todo: convert this to find?
     if [ -f *.7z ]; then
-        echo "WARNING! DANGLING UNENCRYPTED ARCHIVE FOUND"
+        echo "WARNING! DANGLING UNENCRYPTED ARCHIVE FOUND! EXITING"
         ls -AR ./*.7z
+        exit 1 # explicitly fail
     fi
 
     # used to use command -v instead of which and i dont remember why
     if ! [ -f "$(which git)" ] && [ -f "$(which 7z)" ] && [ -f "$(which python)" ] && [ -f "$(which srm)" ] && [ -f "$(which sha512sum)" ]; then
         echo "Needed Applications Not Found!"
         echo "Depends on git, 7z, ugrep, python3, and sha512sum"
+        # todo: maybe make a clever installer function
         # sudo apt update
-        # sudo apt install git secure-delete 7z ugrep python3 -y
+        # sudo apt install git 7z ugrep python3 python3-pip -y
         # pip install -r requirements.txt
         # echo "Success: Installed"
     fi
@@ -75,7 +81,6 @@ EMERGENCY_NUKE() {
     current_dir=$(basename "$PWD") # 1>/dev/null 2>/dev/null
     cd ..
     shred_dir "./$current_dir" # 1>/dev/null 2>/dev/null
-    echo $?
 
     # optionally reboot immediately to wipe memory
     # runs when called with any argument at all
@@ -157,21 +162,30 @@ decrypty(){
 # run at each start
 environment_check
 
-# opreating modez
+# operating modes
 if [ "$1" = "encrypt" -o "$1" = "enc" -o "$1" = "e" ]; then
+    # encrypt mode
     encrypty
 elif [ "$1" = "decrypt" -o "$1" = "dec" -o "$1" = "d" ]; then
+    # decrypt mode
     decrypty
 elif [ "$1" = "help" -o "$1" = "h" ]; then
+    # halp moed
     echo -e "\nUsage:\t\n\tEncrypt:\n\t\tbash betterhiddencrypto.sh e\n\t\tbash betterhiddencrypto.sh enc\n\t\tbash betterhiddencrypto.sh encrypt\n\tDecrypt:\n\t\tbash betterhiddencrypto.sh d\n\t\tbash betterhiddencrypto.sh dec\n\t\tbash betterhiddencrypto.sh decrypt\n\tHelp:\n\t\tbash betterhiddencrypto.sh h\n\t\tbash betterhiddencrypto.sh help\n\tSmart (default):\n\t\tbash betterhiddencrypto.sh\n"
 elif [ "$1" = "nuke" -o "$1" = "emergency_nuke" -o "$1" = "n" -o "$1" = "wipe" -o "$1" = "shred" -o "$1" = "emergency" ]; then
+    # emergency nuke mode
     EMERGENCY_NUKE
+elif [ "$1" = "nukereboot" -o "$1" = "nr" -o "$1" = "reboot" -o "$1" = "shutdown" -o "$1" = "killitwithfire" -o "$1" = "ns" ]; then
+    # NUKE SHUTDOWN MODE
+    EMERGENCY_NUKE KILLITWITHFIRE
 else
     # smart mode
     if [ -d "$dir_to_encrypt" ]; then
+        # smart mkode encrypt
         echo -e "Found existing directory to encrypt ($dir_to_encrypt), defaulting to encryption...\n"
         encrypty
     else
+        # smart mode decryption
         echo -e "No directory found to encrypt ($dir_to_encrypt), defaulting to decryption...\n"
         decrypty
     fi
