@@ -10,10 +10,10 @@ encrypted_volume_name="./.encrypted_volume.7z"
 backup_dir="./.volume_old"
 
 environment_check() {
-    if ! [ -d "$dir_to_encrypt" ] && [ -f "$encrypted_archive_name" ]; then
-        echo "$dir_to_encrypt and $encrypted_archive_name Not Found, Creating..."
-        mkdir "$dir_to_encrypt" 
-	fi
+    # if ! [ -d "$dir_to_encrypt" ] && [ -f "$encrypted_archive_name" ]; then
+    #     echo "$dir_to_encrypt and $encrypted_archive_name Not Found, Creating..."
+    #     mkdir "$dir_to_encrypt" 
+	# fi
 
     if ! [ -d "$backup_dir" ]; then
 		echo "$backup_dir Not Found, Creating..."
