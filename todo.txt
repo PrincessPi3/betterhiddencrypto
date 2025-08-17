@@ -22,3 +22,4 @@ y make the sha512sum digest for 7z go through iterations and maybe use a salt
 x    or find better alternative mayhaps
 test install instructions
 add nuke options to help mode
+make nuke silent
