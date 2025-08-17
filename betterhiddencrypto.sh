@@ -150,7 +150,7 @@ encrypty(){
     fi
 
     # generate new salt
-    echo "Generating new salt for first pass..."
+    echo -e "\tGenerating new salt for first pass..."
     salt=$(new_7z_salt)
 
     echo -e "\tCompressing Directory and performing first pass encryption..."
