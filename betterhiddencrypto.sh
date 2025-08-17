@@ -94,42 +94,43 @@ EMERGENCY_NUKE() {
 
 # salt shit very much wip
 
+# working
 # usage my_salt=$(new_7z_salt)
 new_7z_salt() {
     # nice solid cryptographically secure rng asssss
     openssl rand $salt_length # echo the salt bytes
 }
 
+# workinmg
 # todo sanity checks and silent it
 append_7z_salt() {
     salt="$1"
     # append the salt to the encrypted archive
-    printf "$salt" | cat $encrypted_archive_name > "$encrypted_archive_name.tmp"
-    # copy the tempfile back to old name
-    cp "$encrypted_archive_name.tmp" "$encrypted_archive_name"
-    # shred the tempfile
-    shred_dir "$encrypted_archive_name.tmp"
+    printf "$salt" >> "$encrypted_archive_name"
 }
 
+# workanm
 # todo sanity checks and silent it
 retrieve_7z_salt() {
     # get the stored salt
     tail -c $salt_length "$encrypted_archive_name"
     # remove the salt from the archive
     truncate -s -$salt_length "$encrypted_archive_name"
-    # dd if="$encrypted_archive_name" of="$encrypted_archive_name.tmp" bs=1 count=-16
-    # mv "$encrypted_archive_name.tmp" "$encrypted_archive_name"
 }
 
-# usage: digest_passphrase <string passphrase>
+# workan
+# todo: sanity checks
+# usage: digest_passphrase <string passphrase> <bytes raw salt>
+# like my_digest=$(digest_passphrase "my_passphrase")
 7z_digest_passphrase() {
     iter="$1"
+    salt="$2"
     for i in {1..125}; do # 125 rotations set here, seems slow :flushed:
-        iter=$(echo "$iter" | sha512sum | awk '{print $1}')
+        iter=$(echo "$iter$salt" | sha512sum | awk '{print $1}') # add dat salt for each rot
     done
 
     # meant for usage like my_var=$(7z_digest_passphrase "my_passphrase")
-    echo $iter
+    echo "$iter"
 }
 
 encrypty(){
@@ -148,10 +149,14 @@ encrypty(){
         passphrase=$passphrase1
     fi
 
+    # generate new salt
+    echo "Generating new salt for first pass..."
+    salt=$(new_7z_salt)
+
     echo -e "\tCompressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
     echo -e "\tDigesting passphrase phase 1..."
-    digested_passphrase=$(7z_digest_passphrase "$passphrase")
+    digested_passphrase=$(7z_digest_passphrase "$passphrase" "$salt")
     7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
 
     # test the new archive for integrity before nuking shit
@@ -187,6 +192,10 @@ encrypty(){
         cp "$encrypted_archive_name" "$encrypted_archive_name.bak"
     fi
 
+    # append salt bytes to archive
+    echo -e "\tStoring salt for first pass..."
+    append_7z_salt "$salt"
+
     echo -e "\nSuccess: Encryption done! Encrypted to $encrypted_archive_name"
 
 }
@@ -196,6 +205,10 @@ decrypty(){
     echo -e "\nEnter Passphrase: "
     read -s passphrase
 
+    # retreive da salt
+    echo "Retrieving salt for first pass..."
+    salt=$(retrieve_7z_salt)
+
     # first comes the python crypt
     echo -e "\n\tDecrypting first pass..."
     python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
@@ -204,7 +217,7 @@ decrypty(){
     echo -e "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
     echo -e "\tDigesting passphrase phase 1..."
-    digested_passphrase=$(7z_digest_passphrase "$passphrase")
+    digested_passphrase=$(7z_digest_passphrase "$passphrase" "$salt")
     7z x -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null
 
     # shred the 7z file
