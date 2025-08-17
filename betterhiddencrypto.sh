@@ -92,17 +92,16 @@ EMERGENCY_NUKE() {
 }
 
 # usage:
-# digest_passphrase <string passphrase> <int iterations>
+# digest_passphrase <string passphrase>
 digest_passphrase() {
     iter="$1"
-    rotations=$2
-    for i in {1..$rotations}; do
+    for i in {1..50}; do # 50 rotations set here
         iter=$(echo "$iter" | sha512sum | awk '{print $1}')
         echo -e "$iter\n"
     done
 }
 
-digest_passphrase "opliliergerfg" 50
+digest_passphrase "opliliergerfg"
 
 encrypty(){
     echo "ENCRYPTING Starting..."
