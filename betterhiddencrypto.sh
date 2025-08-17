@@ -4,7 +4,7 @@
 # fail on error
 set -e # important to prevent data loss in event of a failure
 
-dir_to_encrypt="./to_encrypt"
+dir_to_encrypt="to_encrypt"
 encrypted_archive_name="./.volume.bin"
 encrypted_volume_name="./.encrypted_volume.7z"
 backup_dir="./.volume_old"
