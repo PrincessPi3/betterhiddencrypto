@@ -71,6 +71,22 @@ Decrypt explicitly:
 `bash hiddencrypto.sh dec`  or  
 `bash hiddencrypto.sh decrypt`
 
+EMERGENCY NUKE EVERYTHING RIGHT FUCKING NOW (NO RECOVERY POSSIBLE) (WITH SHUTDOWN)  
+`bash hiddencrypto.sh nr` OR  
+`bash hiddencrypto.sh ns` OR  
+`bash hiddencrypto.sh shutdown` OR  
+`bash hiddencrypto.sh reboot` OR  
+`bash hiddencrypto.sh nukereboot` OR  
+`bash hiddencrypto.sh killitwithfire` OR  
+
+EMERGENCY NUKE EVERYTHING RIGHT FUCKING NOW (NO RECOVERY POSSIBLE) (NO SHUTDOWN)  
+`bash hiddencrypto.sh nuke` OR  
+`bash hiddencrypto.sh emergncy_nuke` OR  
+`bash hiddencrypto.sh n` OR  
+`bash hiddencrypto.sh wipe` OR  
+`bash hiddencrypto.sh shred` OR  
+`bash hiddencrypto.sh emergency`
+
 ## Cryptanalysis
 To test and hammer it for peak robustness, testing is going on in [cryptanalysis](./cryptanalysis/README.md
 )

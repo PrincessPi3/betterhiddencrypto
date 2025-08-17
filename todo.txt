@@ -6,14 +6,19 @@ x rework readme
     x witches idea to append/prepend memorized string to stored pass for dual custody typr thinggg
     x actual instructions for usage
     x add mention of 7z crypto
+readme
+    flesh out how the modes work
+    add nuke and antiforensics details
 x add password security 
 add breached passwords check
-shred all volume crypto headers mode (shred --zero --remove --size=N (bytes))
-    also check for and shred any dangling files
+X shred all volume crypto headers mode (shred --zero --remove --size=N (bytes))
+    X also check for and shred any dangling files
 x add smart optin to include dir or file on cli, or prombt for
 x removed make install mode fuckin work
 x prevent those errors when a .volume.bin or .volume.bin.bak is found
 add network killswitch?
 add configurable cron/backup operation kill/pause?
-make the sha512sum digest for 7z go through iterations and maybe use a salt
-    or find better alternative mayhaps
+y make the sha512sum digest for 7z go through iterations and maybe use a salt
+x    or find better alternative mayhaps
+test install instructions
+add nuke options to help mode
