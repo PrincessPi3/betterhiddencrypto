@@ -11,10 +11,23 @@ readme
     add nuke and antiforensics details
     prettify it
     add first pass digest/salt info
+    add laymen usage for a normie to use it durably
+        onedrive/cloud issue
+        backup/file history issue
+        beached pass issue
+        secure pass creation
+            kara's tip
+        key management
+        backing up encrypted data and keys durably
+            backups leak issue again
 x add password security 
 add breached passwords check
 X shred all volume crypto headers mode (shred --zero --remove --size=N (bytes))
     X also check for and shred any dangling files
+    verify data durability in failure modes
+    verify that enough bytes are shredded to reliably nuke it
+    multithread nuke
+    highest priority task setting?
 x add smart optin to include dir or file on cli, or prombt for
 x removed make install mode fuckin work
 x prevent those errors when a .volume.bin or .volume.bin.bak is found
@@ -23,7 +36,21 @@ add configurable cron/backup operation kill/pause?
 y make the sha512sum digest for 7z go through iterations and maybe use a salt
 x    or find better alternative mayhaps
 test install instructions
-add nuke options to help mode
+x add nuke options to help mode
 make nuke silent
-verify salts are being used and stored and in digest
+x verify salts are being used and stored and in digest
 sanity check shit and error check
+add known weaknesses to cryptanalysis readme
+    both salts are leaked in the archive
+        but their prsence still makes it far more robust against attack
+        discuss the sha512 digest thinggg
+            seek commentary
+        discuss the 7z being used and the security threats involved in that
+            seek commentary
+hammer offline card for leaked bytes
+    also leaked partial bytes
+    also do hexdump analysis of the file system to try and find any remnants of empty directories
+        figure out some way to make them vanish (srm again?)
+refactor into platform independant pure python?
+    compiled python exe?
+    gui for nomies? (REEEEE)
