@@ -53,6 +53,8 @@ add known weaknesses to cryptanalysis readme
             seek commentary
         discuss the 7z being used and the security threats involved in that
             seek commentary
+hidden volume/rubbehose type feature?
+duress pass?
 refactor into platform independant pure python?
     compiled python exe?
     gui for nomies? (REEEEE)
