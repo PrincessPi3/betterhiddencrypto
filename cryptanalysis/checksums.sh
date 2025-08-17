@@ -1,5 +1,5 @@
 #!/bin/bash
-log_file="./sha512sum-recursive-$(date "+%Y%m%d-%H%M-%S").tmp"
+log_file="./cryptanalysis/sha512sum-recursive-$(date "+%Y%m%d-%H%M-%S").tmp"
 
 echo "Starting checksum calculation..."
 # sha512 of each file inside of to_encrypt, recursively
