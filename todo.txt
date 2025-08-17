@@ -34,6 +34,8 @@ X shred all volume crypto headers mode (shred --zero --remove --size=N (bytes))
     verify that enough bytes are shredded to reliably nuke it
     multithread nuke
     highest priority task setting?
+    full system shred nuke mode?
+        would have to do it in a clever order based on sensitivity, speed, and keeping the system running long enough to complete
 x add smart optin to include dir or file on cli, or prombt for
 x removed make install mode fuckin work
 x prevent those errors when a .volume.bin or .volume.bin.bak is found
@@ -53,6 +55,8 @@ add known weaknesses to cryptanalysis readme
             seek commentary
         discuss the 7z being used and the security threats involved in that
             seek commentary
+        encrypted disk redundancy
+            nuke mode for disk crypto?
 hidden volume/rubbehose type feature?
 duress pass?
 some type of dead man's switch to nuke?
