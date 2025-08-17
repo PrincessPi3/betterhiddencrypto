@@ -52,10 +52,14 @@ encrypty(){
     echo "Compressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
     digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
-    7z a -p"$digest_passphrase" "$encrypted_volume_name" "$dir_to_encrypt"
+    7z a -p"$digest_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
 
     echo "Successfully compressed, Testing archive integrity..."
-    7z t -p"$digest_passphrase" "$encrypted_volume_name"
+    7z t -p"$digest_passphrase" "$encrypted_volume_name" >/dev/null # do this silently unless fail 
+    if [ $? -ne 0 ]; then # explicitly exit on fail integrity check
+        echo "Archive integrity test failed!"
+        exit 1
+    fi
 
     echo "Archive passed check, Shredding directory..."
     srm -rz "$dir_to_encrypt"
