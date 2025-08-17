@@ -10,7 +10,3 @@
 3. sanity check algos and settings
 4. sanity check that the data is properly encrypted
 5. sanity check via brute force attacks
-
-### tooling
-check checksums recursively of to_encrypt and output to a unique timestamped file
-   ``
