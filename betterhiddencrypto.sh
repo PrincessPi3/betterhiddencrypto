@@ -49,19 +49,21 @@ encrypty(){
         passphrase=$passphrase1
     fi
 
-    echo "Compressing Directory..."
-
+    echo "Compressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
     digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
-    7z a -p"$digest_passphrase" -mhe=on "$encrypted_volume_name" "$dir_to_encrypt"
+    7z a -p"$digest_passphrase" "$encrypted_volume_name" "$dir_to_encrypt"
 
-    echo "Successfully Compressed, Shredding Directory..."
+    echo "Successfully compressed, Testing archive integrity..."
+    7z t -p"$digest_passphrase" "$encrypted_volume_name"
+
+    echo "Archive passed check, Shredding directory..."
     srm -rz "$dir_to_encrypt"
 
-    echo "Successfully Shredded Directory, Encrypting..."
+    echo "Successfully shredded directory, Running second pass encryption..."
     python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name"
 
-    echo "Successfully Encrypted, Shredding Archive..."
+    echo "Successfully encrypted, Shredding Archive..."
     srm -rz "$encrypted_volume_name"
 
     echo "Success: Encryption Done"
@@ -79,10 +81,10 @@ decrypty(){
     echo "DECRYPTION Starting..."
     read -s -p "Enter Passphrase: " passphrase
 
-    # echo "Decrypting. Please Input Passphrase..."
+    echo "Decrypting first pass..."
     python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
 
-    echo "Successfully Decrypted Encrypted Archive, Decompressing..."
+    echo "Successfully decrypted first pass encryption, decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
     digest_passphrase=$(echo "$passphrase" | sha512sum | awk '{print $1}')
     7z x -p"$digest_passphrase" "$encrypted_volume_name"
