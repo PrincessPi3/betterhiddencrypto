@@ -61,6 +61,7 @@ EMERGENCY_NUKE() {
     # first phase just tosses the encryption headers (top 100 bytes) from the .volume.bin files and backups
     # this is done first and fast as possible for emergencies
     find . -path ".git" -prune -o -type f -name "*.volume.bin*" -exec shred --size=100 --force {} \; # 1>/dev/null 2>/dev/null
+    echo $?
 
     # next stage is to shred to_encrypt if it exists
     if [ -d "$dir_to_encrypt" ]; then
