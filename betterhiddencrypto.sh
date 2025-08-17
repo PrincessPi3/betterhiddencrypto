@@ -96,7 +96,7 @@ digest_passphrase() {
     echo "$1" | sha512sum | awk '{print $1}'
 }
 
-one=$(digested_passphrase "helloooooo")
+one=$(digest_passphrase "helloooooo")
 echo $one
 
 encrypty(){
