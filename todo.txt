@@ -70,3 +70,4 @@ refactor into platform independant pure python?
 add more disclaimers about data loss and potentially bad security for fun
 add debug mode to shell script and have it pass that to teh python script
     document
+add early pass check and requirements list upon fail early in enc/dec
