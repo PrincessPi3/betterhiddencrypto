@@ -71,6 +71,7 @@ add more disclaimers about data loss and potentially bad security for fun
 add debug mode to shell script and have it pass that to teh python script
     document
 fork nuke to background and exit terminal?
+    setsid <function> then clear/exit?
 manually shred filenames by renaing repeatedly with junk and then nullbytes?
 reevaluate workflow
     add option to specify input dir and output file

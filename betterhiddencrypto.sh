@@ -63,6 +63,8 @@ shred_dir() {
     fi
 }
 
+# note: rework and add nuke alias to rcfile something llike
+##   alias EMERGENCY_NUKE='setsid bash /path/to/betterhiddencrypto.sh ns; clear; exit'
 EMERGENCY_NUKE() {
     # NUKE EVERYFUCKINGTHING IN THIS DIR
     # CRASH IT WITH NO SURVIVors
