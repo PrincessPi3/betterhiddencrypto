@@ -7,7 +7,8 @@ set -e # important to prevent data loss in event of a failure
 
 # CHANGE da config here if ya like
 DEBUG=1 # 0 = no debug, 1 = console debug, 2 = log file+console debug
-dir_to_encrypt="./to_encrypt"
+# dir_to_encrypt="./to_encrypt"
+dir_to_encrypt="/tmp/to_encrypt" # only in memory fs for security
 encrypted_archive_name="./.volume.bin"
 encrypted_volume_name="./.encrypted_volume.7z"
 backup_dir="./.volume_old"
