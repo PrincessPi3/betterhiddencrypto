@@ -211,26 +211,35 @@ encrypty(){
         echo -e "\nPassphrases do not match! Exiting!\n"
         exit 1 # otherwise explicitly fail
     else
-        debug_echo "\n\tPasswords match!"
+        debug_echo "Passwords match!"
         passphrase=$passphrase1
     fi
 
     # generate new salt
-    debug_echo "\tGenerating new salt for first pass..."
+    debug_echo "Generating new salt for first pass..."
     salt=$(new_7z_salt)
+    debug_echo "Salt: $(echo -n $salt | xxd -p)" # print salt in hex
 
-    debug_echo "\tCompressing Directory and performing first pass encryption..."
+    debug_echo "Compressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
-    debug_echo "\tDigesting passphrase phase 1..."
+    debug_echo "Digesting passphrase phase 1..."
     digested_passphrase=$(7z_digest_passphrase "$passphrase" "$salt")
-    7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
+    debug_echo "Digested Passphrase: $digested_passphrase"
+
+    if [ $DEBUG -gt 0 ]; then
+        debug_return=$(7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt")
+        debug_echo "$debug_return"
+    else
+        7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
+    fi
 
     # test the new archive for integrity before nuking shit
-    debug_echo "\tSuccessfully compressed, Testing archive integrity..."
-    7z t -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null # do this silently unless fail
-    if [ $? -ne 0 ]; then # explicitly exit on fail integrity check
-        echo "Archive integrity test failed!"
-        exit 1
+    debug_echo "Successfully compressed, Testing archive integrity..."
+    if [ $DEBUG -gt 0 ]; then
+        debug_return=$(7z t -p"$digested_passphrase" "$encrypted_volume_name")
+        debug_echo "$debug_return"
+    else
+        7z t -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null # do this silently unless fail
     fi
 
     # nuke to_encrypt dir
@@ -259,7 +268,7 @@ encrypty(){
     fi
 
     # append salt bytes to archive
-    debug_echo "\tStoring salt for first pass..."
+    debug_echo "Storing salt for first pass..."
     append_7z_salt "$salt"
 
     echo -e "\nSuccess: Encryption done! Encrypted to $encrypted_archive_name"
@@ -270,23 +279,39 @@ decrypty(){
     echo -e "\nEnter Passphrase: "
     read -s passphrase
 
+    debug_echo "\tPassphrase: $passphrase"
+
     # retreive da salt
-    debug_echo "\n\tRetrieving salt for first pass..."
+    debug_echo "Retrieving salt for first pass..."
     salt=$(retrieve_7z_salt)
+    
+    debug_echo "Salt: $(echo -n $salt | xxd -p)" # print salt in hex
 
     # first comes the python crypt
-    debug_echo "\tDecrypting first pass..."
-    python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name" $DEBUG
+    debug_echo "Decrypting first pass..."
+    if [ $DEBUG -gt 0 ]; then
+        debug_return=$(python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name" $DEBUG)
+        debug_echo "$debug_return"
+    else
+        python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name" $DEBUG
+    fi
 
     # do the 7z decryption/decompression
-    debug_echo "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
+    debug_echo "Successfully decrypted first pass encryption, Decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
-    debug_echo "\tDigesting passphrase phase 1..."
+    debug_echo "Digesting passphrase phase 1..."
     digested_passphrase=$(7z_digest_passphrase "$passphrase" "$salt")
-    7z x -p"$digested_passphrase" "$encrypted_volume_name" -o/tmp 1>/dev/null
+    debug_echo "Digested Passphrase: $digested_passphrase"
+
+    if [ $DEBUG -gt 0 ]; then
+        debug_return=$(7z x -p"$digested_passphrase" "$encrypted_volume_name" -o/tmp)
+        debug_echo "$debug_return"
+    else
+        7z x -p"$digested_passphrase" "$encrypted_volume_name" -o/tmp 1>/dev/null
+    fi
 
     # shred the 7z file
-    debug_echo "\tSuccessfully decrypted, Shredding encrypted archive..."
+    debug_echo "Successfully decrypted, Shredding encrypted archive..."
     shred_dir "$encrypted_volume_name"
 
     echo -e "\nSuccess: Decryption done! Decrypted to $dir_to_encrypt"
