@@ -10,7 +10,7 @@ DEBUG=1 # 0 = no debug, 1 = console debug, 2 = log file+console debug
 # dir_to_encrypt="./to_encrypt"
 dir_to_encrypt="/tmp/to_encrypt" # only in memory fs for security
 encrypted_archive_name="./.volume.bin"
-encrypted_volume_name="./.encrypted_volume.7z"
+encrypted_volume_name="/tmp/.encrypted_volume.7z"
 backup_dir="./.volume_old"
 salt_length=16 # in 8-bit bytes (16 bytes = 128 bits)
 max_length_dir_name_shred=64 # max length for renaming dirs during shred
