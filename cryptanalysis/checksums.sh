@@ -6,6 +6,7 @@ echo "Starting checksum calculation... $PWD"
 if [ -d ./to_encrypt ]; then
     find ./to_encrypt -type d -name ".git" -prune -o -type f -exec sha512sum {} \; | tee -a "$log_file"
 fi
+
 # do the same for the volumes and add to log
 find . -type d -name ".git" -prune -o -type f -name ".volume*" -exec sha512sum {} \; | tee -a "$log_file"
 
