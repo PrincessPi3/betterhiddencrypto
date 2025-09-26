@@ -2,10 +2,10 @@
 # USAGE: source ./environment.sh
 
 # passphrase var export
-export passphrase="$(cat ./cryptanalysis/pass_used_in_testing.txt)"
+export test_passphrase="$(cat ./cryptanalysis/pass_used_in_testing.txt)"
 
 # passphrase var
-alias passphrase="echo $passphrase"
+alias test_passphrase="echo $test_passphrase"
 
 # nuke and reset environment with 60 second sleep
 alias test_reset_sleep='echo -e "\nNuking and Resetting... wait 60 seconds...\n"; sleep 60; cd ~; rm -rf ~/betterhiddencrypto/; git clone https://github.com/PrincessPi3/betterhiddencrypto.git ~/betterhiddencrypto 2>/dev/null; cd ~/betterhiddencrypto; cp -r ./cryptanalysis/to_encrypt_testing ./to_encrypt; tree ./to_encrypt; echo; find ./to_encrypt -type f -exec cat {} \; ; echo -e "\npassphrase:"; cat ./cryptanalysis/pass_used_in_testing.txt; rm -rf /tmp/to_encrypt; source ./environment.sh'
