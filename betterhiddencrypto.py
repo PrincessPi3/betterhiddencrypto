@@ -114,6 +114,11 @@ if __name__ == "__main__":
     passphrase = sys.argv[2]
     input_file = sys.argv[3]
     output_file = sys.argv[4]
+    debug_mode = sys.argv[5]
+    if debug_mode.lower() in ("1", "true", "yes", "y"):
+        debug_mode = True
+    else:
+        debug_mode = False 
     # check password strength before proceeding
     if not check_passphrase(passphrase):
         print("Weak password. Exiting.")

@@ -267,7 +267,7 @@ decrypty(){
     # the statistically independent passphrase for redundant encryption
     debug_echo "\tDigesting passphrase phase 1..."
     digested_passphrase=$(7z_digest_passphrase "$passphrase" "$salt")
-    7z x -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null
+    7z x -p"$digested_passphrase" "$encrypted_volume_name" -o/tmp 1>/dev/null
 
     # shred the 7z file
     debug_echo "\tSuccessfully decrypted, Shredding encrypted archive..."
