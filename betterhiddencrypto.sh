@@ -57,7 +57,7 @@ shred_dir() {
         for i in $(seq 1 $shred_iterations); do
             # rename all dirs to random names
             echo "find operation iteration $i"
-            find "$1" -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \;
+            find "$1/*" -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \;
         done
         
         # then rename dirs to nullbytes to make sure no names remain
