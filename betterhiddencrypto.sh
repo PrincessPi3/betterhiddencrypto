@@ -52,8 +52,7 @@ environment_check() {
 shred_dir() {
     if [ -d "$1" ]; then # if its a dir        
         # next phase is to shred all files in the dir
-        find "$1" -path ".git" -prune -o -type f -exec shred --zero --remove --force --iterations=$shred_iterations {} \; # 1>/dev/null 2>/dev/null
-
+        find "$1" -path ".git" -prune -o -type f -exec shred --zero --remove --force --iterations=$shred_iterations {} \;
         # first phase is to rename all dirs to random names to break the structure
         for i in $(seq 1 $shred_iterations); do
             # generate random name for this iteration
@@ -65,19 +64,15 @@ shred_dir() {
             fi
 
             # rename all dirs to random names
-            find "$random_start_name" -type d -exec mv {} $random_start_name \; # 1>/dev/null 2>/dev/null
-
-            # set the old random name for next iteration
-            old_random_name="$random_start_name"
+            find "$random_start_name" -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \; 
         done
 
         # then rename them to known name to nuke
-        known_random_name=$(openssl rand -hex $max_length_dir_name_shred)
-        find "$1" -path ".git" -prune -o -type d -exec mv {} $known_random_name \; # 1>/dev/null 2>/dev/null
-
+        find "$random_start_name" -path ".git" -prune -o -type d -exec mv {} $random_start_name \;
+        
         # then rename dirs to nullbytes to make sure no names remain
         # TODO: fix this to work
-        # find "$known_random_name" -path ".git" -prune -o -type d -exec mv {} $(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none) \;
+        # find "$random_start_name" -path ".git" -prune -o -type d -exec mv {} $(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none) \;
 
         # then nuke the all empty dirs
         rm -rf "$known_random_name"
