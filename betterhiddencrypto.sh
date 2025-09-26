@@ -6,6 +6,7 @@
 set -e # important to prevent data loss in event of a failure
 
 # CHANGE da config here if ya like
+DEBUG=1 # 0 = no debug, 1 = console debug, 2 = log file+console debug
 dir_to_encrypt="./to_encrypt"
 encrypted_archive_name="./.volume.bin"
 encrypted_volume_name="./.encrypted_volume.7z"
@@ -13,17 +14,28 @@ backup_dir="./.volume_old"
 salt_length=16 # in 8-bit bytes (16 bytes = 128 bits)
 max_length_dir_name_shred=64 # max length for renaming dirs during shred
 shred_iterations=3 # number of iterations to do shredding files and dir names
+log_file="./$(date +%s)_debug_log.txt" # log file for debug mode
+
+debug_echo() {
+    if [ $DEBUG -eq 1 ]; then
+        echo -e "$1"
+    elif [ $DEBUG -eq 2 ]; then
+        echo -e "$1" | tee -a "$log_file"
+    else
+        : # do nothing
+    fi
+}
 
 environment_check() {
     # chezh em if both dir and archive dont exist
     if ! [ -d "$dir_to_encrypt" ] && ! [ -f "$encrypted_archive_name" ]; then
-        echo "$dir_to_encrypt and $encrypted_archive_name not found, Creating $dir_to_encrypt..."
+        debug_echo "$dir_to_encrypt and $encrypted_archive_name not found, Creating $dir_to_encrypt..."
         mkdir "$dir_to_encrypt"
     fi
 
     # cerate backup dir if missin
     if ! [ -d "$backup_dir" ]; then
-        echo "$backup_dir not found, creating..."
+        debug_echo "$backup_dir not found, creating..."
 		mkdir "$backup_dir"
 	fi
 
@@ -50,7 +62,9 @@ environment_check() {
 # switchan to shred and find because secure-delete is old af
 # also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
 shred_dir() {
-    if [ -d "$1" ]; then # if its a dir        
+    if [ -d "$1" ]; then # if its a dir
+        debug_echo "Shredding directory: $1"
+
         # next phase is to shred all files in the dir
         find "$1" -path ".git" -prune -o -type f -exec shred --zero --remove --force --iterations=$shred_iterations {} \;
 
@@ -89,6 +103,7 @@ shred_dir() {
         rm -rf "$1"
     elif [ -f "$1" ]; then # if its a file
         # three iterations plus a zeroing and deletion
+        debug_echo "Shredding file: $1"
         shred --zero --remove --force --iterations=$shred_iterations "$1" # 1>/dev/null 2>/dev/null
     else # fail
         echo "FAIL: Directory or file not found: $1 EXITING"
@@ -179,22 +194,22 @@ encrypty(){
         echo -e "\nPassphrases do not match! Exiting!\n"
         exit 1 # otherwise explicitly fail
     else
-        echo -e "\n\tPasswords match!"
+        debug_echo "\n\tPasswords match!"
         passphrase=$passphrase1
     fi
 
     # generate new salt
-    echo -e "\tGenerating new salt for first pass..."
+    debug_echo "\tGenerating new salt for first pass..."
     salt=$(new_7z_salt)
 
-    echo -e "\tCompressing Directory and performing first pass encryption..."
+    debug_echo "\tCompressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
-    echo -e "\tDigesting passphrase phase 1..."
+    debug_echo "\tDigesting passphrase phase 1..."
     digested_passphrase=$(7z_digest_passphrase "$passphrase" "$salt")
     7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
 
     # test the new archive for integrity before nuking shit
-    echo -e "\tSuccessfully compressed, Testing archive integrity..."
+    debug_echo "\tSuccessfully compressed, Testing archive integrity..."
     7z t -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null # do this silently unless fail
     if [ $? -ne 0 ]; then # explicitly exit on fail integrity check
         echo "Archive integrity test failed!"
@@ -202,36 +217,35 @@ encrypty(){
     fi
 
     # nuke to_encrypt dir
-    echo -e "\tArchive passed check, Shredding directory..."
+    debug_echo "\tArchive passed check, Shredding directory..."
     shred_dir "$dir_to_encrypt"
 
     # do the second pass encryption
-    echo -e "\tSuccessfully shredded directory, Running second pass encryption..."
+    debug_echo "\tSuccessfully shredded directory, Running second pass encryption..."
     python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name"
 
     # shred da 7z file
-    echo -e "\tSuccessfully encrypted, Shredding Archive..."
+    debug_echo "\tSuccessfully encrypted, Shredding Archive..."
     shred_dir "$encrypted_volume_name"
 
     # check for bak archive and backup if exists
     if [ -f "$encrypted_archive_name.bak" ]; then
         timestamp=$(date +"%d%m%Y-%H%M")
-        echo -e "\tBacking up old archive ($encrypted_archive_name.bak.$timestamp)"
+        debug_echo "\tBacking up old archive ($encrypted_archive_name.bak.$timestamp)"
         cp "$encrypted_archive_name.bak" "$backup_dir/$encrypted_archive_name.bak.$timestamp"
     fi
 
     # check for existing archive and backup if exists
     if [ -f "$encrypted_archive_name" ]; then
-        echo -e "\tBacking up new archive ($encrypted_archive_name.bak)"
+        debug_echo "\tBacking up new archive ($encrypted_archive_name.bak)"
         cp "$encrypted_archive_name" "$encrypted_archive_name.bak"
     fi
 
     # append salt bytes to archive
-    echo -e "\tStoring salt for first pass..."
+    debug_echo "\tStoring salt for first pass..."
     append_7z_salt "$salt"
 
     echo -e "\nSuccess: Encryption done! Encrypted to $encrypted_archive_name"
-
 }
 
 decrypty(){
@@ -240,22 +254,22 @@ decrypty(){
     read -s passphrase
 
     # retreive da salt
-    echo -e "\n\tRetrieving salt for first pass..."
+    debug_echo "\n\tRetrieving salt for first pass..."
     salt=$(retrieve_7z_salt)
 
     # first comes the python crypt
-    echo -e "\n\tDecrypting first pass..."
+    debug_echo "\tDecrypting first pass..."
     python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
 
     # do the 7z decryption/decompression
-    echo -e "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
+    debug_echo "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
     # the statistically independent passphrase for redundant encryption
-    echo -e "\tDigesting passphrase phase 1..."
+    debug_echo "\tDigesting passphrase phase 1..."
     digested_passphrase=$(7z_digest_passphrase "$passphrase" "$salt")
     7z x -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null
 
     # shred the 7z file
-    echo -e "\tSuccessfully decrypted, Shredding encrypted archive..."
+    debug_echo "\tSuccessfully decrypted, Shredding encrypted archive..."
     shred_dir "$encrypted_volume_name"
 
     echo -e "\nSuccess: Decryption done! Decrypted to $dir_to_encrypt"
