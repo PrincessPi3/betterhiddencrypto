@@ -76,3 +76,4 @@ manually shred filenames by renaing repeatedly with junk and then nullbytes?
 reevaluate workflow
     add option to specify input dir and output file
         smart select enc/dec with these
+prepend outer layer salt to make nuking first n bytes easier and more effective
