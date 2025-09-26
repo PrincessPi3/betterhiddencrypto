@@ -56,11 +56,11 @@ shred_dir() {
 
         # first phase is to rename all dirs to random names to break the structure
         for i in $(seq 1 $shred_iterations); do
-            find "$1" -path ".git" -prune -o -type d -exec echo mv {} $(openssl rand -hex $max_length_dir_name_shred) \; # 1>/dev/null 2>/dev/null
+            find "$1" -path ".git" -prune -o -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \; # 1>/dev/null 2>/dev/null
         done
 
         # then rename dirs to nullbytes to make sure no names remain
-        find "$1" -path ".git" -prune -o -type d -exec echo mv {} $(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none) \;
+        find "$1" -path ".git" -prune -o -type d -exec mv {} $(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none) \;
 
         # then nuke the all empty dirs
         rm -rf "$1"
