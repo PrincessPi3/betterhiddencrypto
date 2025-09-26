@@ -59,12 +59,16 @@ shred_dir() {
             find "$1" -path ".git" -prune -o -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \; # 1>/dev/null 2>/dev/null
         done
 
+        # then rename them to known name to nuke
+        known_random_name=$(openssl rand -hex $max_length_dir_name_shred)
+        find "$1" -path ".git" -prune -o -type d -exec mv {} $known_random_name \; # 1>/dev/null 2>/dev/null
+
         # then rename dirs to nullbytes to make sure no names remain
         # TODO: fix this to work
-        # find "$1" -path ".git" -prune -o -type d -exec mv {} $(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none) \;
+        # find "$known_random_name" -path ".git" -prune -o -type d -exec mv {} $(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none) \;
 
         # then nuke the all empty dirs
-        rm -rf "$1"
+        rm -rf "$known_random_name"
     elif [ -f "$1" ]; then # if its a file
         # three iterations plus a zeroing and deletion
         shred --zero --remove --force --iterations=$shred_iterations "$1" # 1>/dev/null 2>/dev/null
