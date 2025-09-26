@@ -86,7 +86,7 @@ shred_dir() {
         # find "$1" -mindepth 2 -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \; # remove empty dirs
 
         # then nuke the all empty dirs
-        rm -rf "$random_start_name"
+        rm -rf "$1"
     elif [ -f "$1" ]; then # if its a file
         # three iterations plus a zeroing and deletion
         shred --zero --remove --force --iterations=$shred_iterations "$1" # 1>/dev/null 2>/dev/null
