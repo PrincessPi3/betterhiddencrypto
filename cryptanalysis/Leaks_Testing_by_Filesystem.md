@@ -1,5 +1,7 @@
 # Leaks Testing by Filesystem
 ## Methodology
+### Create Test Disk
+[zero_recreate_disk.sh](./zero_recreate_disk.sh)
 ### OS disk
 1. Zero a drive
 2. Install Kali on drive
@@ -20,11 +22,16 @@
 6. Hammer for leaks
 
 ## Tests
-### FAT32
+### Linux
+#### FAT32
 * 32GB USB-A 3.0 Drive
 * Zeroed via `cat /dev/zero /dev/sda`
 * FAT32 formatted via 
-### NTFS
-### EXT4
-### ZFS
-### BTRFS
+#### NTFS
+#### EXT4
+#### ZFS
+#### BTRFS
+### Windows (WSL)
+#### NTFS
+#### FAT32
+#### EXFAT
