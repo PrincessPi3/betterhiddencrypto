@@ -162,6 +162,22 @@ append_7z_salt() {
 }
 
 # todo sanity checks and silent it
+prepend_7z_salt() {
+    salt="$1"
+
+    echo -e "${1}$(cat "$encrypted_archive_name")" > "$encrypted_archive_name"
+}
+
+# todo sanity checks and silent it
+retrieve_prepend_7z_salt() {
+    # get the stored salt
+    head -c $salt_length "$encrypted_archive_name"
+    
+    # remove the salt from the archive
+    truncate -s $salt_length "$encrypted_archive_name"
+}
+
+# todo sanity checks and silent it
 retrieve_7z_salt() {
     # get the stored salt
     tail -c $salt_length "$encrypted_archive_name"
