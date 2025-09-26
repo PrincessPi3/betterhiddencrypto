@@ -50,21 +50,25 @@ environment_check() {
 # switchan to shred and find because secure-delete is old af
 # also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
 shred_dir() {
-    if [ -d "$1" ]; then # if its a dir
-        random_start_name=$(openssl rand -hex $max_length_dir_name_shred)
-        
+    if [ -d "$1" ]; then # if its a dir        
         # next phase is to shred all files in the dir
         find "$1" -path ".git" -prune -o -type f -exec shred --zero --remove --force --iterations=$shred_iterations {} \; # 1>/dev/null 2>/dev/null
 
         # first phase is to rename all dirs to random names to break the structure
         for i in $(seq 1 $shred_iterations); do
+            # generate random name for this iteration
+            random_start_name=$(openssl rand -hex $max_length_dir_name_shred)
+
             # if the dir still exists under original name use that
             if [ -d "$1" ]; then
                 mv  "$1" "$random_start_name"
             fi
 
             # rename all dirs to random names
-            find "$random_start_name/*" -path ".git" -prune -o -type d -exec mv {} $random_start_name \; # 1>/dev/null 2>/dev/null
+            find "$random_start_name" -type d -exec mv {} $random_start_name \; # 1>/dev/null 2>/dev/null
+
+            # set the old random name for next iteration
+            old_random_name="$random_start_name"
         done
 
         # then rename them to known name to nuke
