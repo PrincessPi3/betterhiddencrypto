@@ -223,7 +223,7 @@ encrypty(){
 
     # do the second pass encryption
     debug_echo "\tSuccessfully shredded directory, Running second pass encryption..."
-    python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name"
+    python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name" $DEBUG
 
     # shred da 7z file
     debug_echo "\tSuccessfully encrypted, Shredding Archive..."
@@ -260,7 +260,7 @@ decrypty(){
 
     # first comes the python crypt
     debug_echo "\tDecrypting first pass..."
-    python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name"
+    python betterhiddencrypto.py dec "$passphrase" "$encrypted_archive_name" "$encrypted_volume_name" $DEBUG
 
     # do the 7z decryption/decompression
     debug_echo "\tSuccessfully decrypted first pass encryption, Decompressing second pass decrypting..."
