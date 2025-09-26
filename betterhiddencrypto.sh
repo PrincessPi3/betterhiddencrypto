@@ -51,12 +51,20 @@ environment_check() {
 # also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
 shred_dir() {
     if [ -d "$1" ]; then # if its a dir
+        random_start_name=$(openssl rand -hex $max_length_dir_name_shred)
+        
         # next phase is to shred all files in the dir
         find "$1" -path ".git" -prune -o -type f -exec shred --zero --remove --force --iterations=$shred_iterations {} \; # 1>/dev/null 2>/dev/null
 
         # first phase is to rename all dirs to random names to break the structure
         for i in $(seq 1 $shred_iterations); do
-            find "$1" -path ".git" -prune -o -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \; # 1>/dev/null 2>/dev/null
+            # if the dir still exists under original name use that
+            if [ -d "$1" ]; then
+                mv  "$1" "$random_start_name"
+            fi
+
+            # rename all dirs to random names
+            find "$random_start_name/." -path ".git" -prune -o -type d -exec mv {} $random_start_name \; # 1>/dev/null 2>/dev/null
         done
 
         # then rename them to known name to nuke
