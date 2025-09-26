@@ -1,5 +1,5 @@
 # betterhiddencrypto
-(better) Silly lil commandline linux tool for encrypting the absolute fuck out of some shit. Using [Argon2id](https://en.wikipedia.org/wiki/Argon2), [AES265-GCM](https://medium.com/@pravallikayakkala123/understanding-aes-encryption-and-aes-gcm-mode-an-in-depth-exploration-using-java-e03be85a3faa), [7-Zip compression and encryption](https://www.7-zip.org/7z.html), and [shred](https://linux.die.net/man/1/shred) (coreutils) to redundantly and securely open and close an encrypted and compressed directory (7z), [OpenSSL](https://www.openssl.org), and shred any lingering data immediately following checks for robust antiforensics.
+(better) Silly lil commandline linux tool for encrypting the absolute fuck out of some shit. Using [Argon2id](https://en.wikipedia.org/wiki/Argon2), [AES-265-GCM](https://medium.com/@pravallikayakkala123/understanding-aes-encryption-and-aes-gcm-mode-an-in-depth-exploration-using-java-e03be85a3faa), [7-Zip compression and encryption](https://www.7-zip.org/7z.html), and [shred](https://linux.die.net/man/1/shred) (coreutils) to redundantly and securely open and close an encrypted and compressed directory (7z), [OpenSSL](https://www.openssl.org), and shred any lingering data immediately following checks for robust antiforensics.
 
 ## Textwall about the frickin thing
 Encryption MY way!
@@ -8,7 +8,7 @@ I was totally fucked off by the normie file encryption utilities like Veracrypt,
 For one, they are STILL using PMDKF2 as the KDF (Key Derivation Function, the algo that deterministically generates the 256-bit key from a passphrase) and the simple truth is that PBDKF2 is criminally outdated and no ever increasing number of iterations into the millions and millions are ever gonna change that.  
 So, I selected the gigachad KDF, [Argon2id](https://en.wikipedia.org/wiki/Argon2) to generate the 256-bit key. It features appx. With variable cost settings for time, memory, parralellization, and with dual independant cryptographically securely randomly generated salts appended and prepended to the volume, it makes a very robust and attack resistant KDF.
   
-AES with 256bit key in GCM mode is used. GCM mode includes authtentication which is nice, and is considered one of the most secure AES modes.
+AES with 256-bit key in GCM mode is used. GCM mode includes authtentication which is nice, and is considered one of the most secure AES modes.
 
 The compression and redundant encryption is via 7zip. The script generates a sha512 hash of the passphrase to make sure the passphrase for the 7z archive is statistically independant from the one used in the main encryption.  
 The passphrase for the inner 7z archive is digested from the same passphrase by iterating the passphrase+one salt through sha512 125 times.  
@@ -39,6 +39,7 @@ Initilialization Vector (IV): 16 bytes
 1. All unneeded data is robustly shredded immediately upon confirming that it is no longer needed.
 2. Extremely fast, most-sensitive-first nuke mode to destory all of the data in this dir, including encrypted volumes, their backups, any dangling unencrypted data, followd by optional immediate shutdown.
 3. Intense amateur antiforensics/cryptographic testing and iterative improvement going on over in [cryptanalysis/](./cryptanalysis/README.md)
+4. Custom directory file name shredding function in addition to shredding files
 
 ## Back Up Your Shit
 * This script is probably as unstable as I am and will probably end up nuking your files

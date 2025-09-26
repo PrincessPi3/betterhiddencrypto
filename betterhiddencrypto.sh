@@ -11,6 +11,8 @@ encrypted_archive_name="./.volume.bin"
 encrypted_volume_name="./.encrypted_volume.7z"
 backup_dir="./.volume_old"
 salt_length=16 # in 8-bit bytes (16 bytes = 128 bits)
+max_length_dir_name_shred=256 # max length for renaming dirs during shred
+shred_iterations=3 # number of iterations to do shredding files and dir names
 
 environment_check() {
     # chezh em if both dir and archive dont exist
@@ -49,14 +51,22 @@ environment_check() {
 # also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
 shred_dir() {
     if [ -d "$1" ]; then # if its a dir
-        # three iterations plus a zeroing and deletion then rm -rf to remove the directory structure
-        # all the uses of shred redirect all output to /dev/null so that its silent af
-        # also all find operatons on nukin shit excludes any dir named .git for speed
-        find "$1" -path ".git" -prune -o -type f -exec shred --zero --remove --force {} \; # 1>/dev/null 2>/dev/null
-        rm -rf "$1" # 1>/dev/null 2>/dev/null
+        # next phase is to shred all files in the dir
+        find "$1" -path ".git" -prune -o -type f -exec shred --zero --remove --force --iterations=$shred_iterations {} \; # 1>/dev/null 2>/dev/null
+
+        # first phase is to rename all dirs to random names to break the structure
+        for i in $(seq 1 $shred_iterations); do
+            find "$1" -path ".git" -prune -o -type d -exec echo mv {} $(openssl rand -hex $max_length_dir_name_shred) \; # 1>/dev/null 2>/dev/null
+        done
+
+        # then rename dirs to nullbytes to make sure no names remain
+        find "$1" -path ".git" -prune -o -type d -exec echo mv {} $(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none) \;
+
+        # then nuke the all empty dirs
+        rm -rf "$1"
     elif [ -f "$1" ]; then # if its a file
         # three iterations plus a zeroing and deletion
-        shred --zero --remove --force "$1" # 1>/dev/null 2>/dev/null
+        shred --zero --remove --force --iterations=$shred_iterations "$1" # 1>/dev/null 2>/dev/null
     else # fail
         echo "FAIL: Directory or file not found: $1 EXITING"
         exit 1 # explicitly fail
@@ -69,16 +79,21 @@ EMERGENCY_NUKE() {
     # NUKE EVERYFUCKINGTHING IN THIS DIR
     # CRASH IT WITH NO SURVIVors
 
-    # first phase just tosses the encryption headers (top 100 bytes) from the .volume.bin files and backups
+    # first phase just tosses the encryption headers (top 164 bytes) from the .volume.bin files and backups
     # this is done first and fast as possible for emergencies
-    find . -path ".git" -prune -o -type f -name "*.volume.bin*" -exec shred --size=100 --zero --force {} \; # 1>/dev/null 2>/dev/null
+    # this is done blocking to make sure it completes before moving on
+    find . -path ".git" -prune -o -type f -name "*.volume.bin*" -exec shred --size=164 --zero --force {} \; # 1>/dev/null 2>/dev/null
 
     # next stage is to shred to_encrypt if it exists
+    # TODO: make sure this runs non-blocking and fast as possible
     if [ -d "$dir_to_encrypt" ]; then
         shred_dir "$dir_to_encrypt" # 1>/dev/null 2>/dev/null
     fi
 
     # third stage is to nuke any remaining dangling files explicitly
+    # TODO: make sure this runs non-blocking and fast as possible
+    # specifically target .7z, .bak, and .tmp files
+    # use find to do this recursively and skip .git dirs for speed
     find . -path ".git" -prune -o -type f -name "*.7z" -o -type f -name "*.bak*" -o -type f -name "*.tmp*" -exec shred --zero --force {} \; # 1>/dev/null 2>/dev/null
 
     # third stage is to go log the current dir's name, go up a directory, and shred everyfucking thing remaining
