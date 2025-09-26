@@ -53,33 +53,35 @@ shred_dir() {
     if [ -d "$1" ]; then # if its a dir        
         # next phase is to shred all files in the dir
         find "$1" -path ".git" -prune -o -type f -exec shred --zero --remove --force --iterations=$shred_iterations {} \;
+
+        # attempt to rename dirs to random names first
         # first phase is to rename all dirs to random names to break the structure
-        for i in $(seq 1 $shred_iterations); do
-            # get random starting dir name for this iteration
-            random_start_name=$(openssl rand -hex $max_length_dir_name_shred)
-
-            # make the random starting dir
-            if [ -d "$1" ]; then
-                echo "Renaming start dir ($1) to random start dir ($random_start_name) for iteration $i"
-                mv "$1" "$random_start_name"
-            elif [ -d "$old_random_start_name" ]; then
-                echo "Renaming old random start dir ($old_random_start_name) to new random start dir ($random_start_name) for iteration $i"
-                mv "$old_random_start_name" "$random_start_name"
-            else
-                echo "FAIL: Directory not found: $1 EXITING"
-                exit 1 # explicitly fail
-            fi
-
-            # rename all dirs to random names
-            echo "find operation iteration $i"
-            find "$random_start_name" -mindepth 1 -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \;
-
-            old_random_start_name=$random_start_name # store for next iteration
-        done
+        # for i in $(seq 1 $shred_iterations); do
+        #     # get random starting dir name for this iteration
+        #     random_start_name=$(openssl rand -hex $max_length_dir_name_shred)
+        # 
+        #     # make the random starting dir
+        #     if [ -d "$1" ]; then
+        #         echo "Renaming start dir ($1) to random start dir ($random_start_name) for iteration $i"
+        #         mv "$1" "$random_start_name"
+        #     elif [ -d "$old_random_start_name" ]; then
+        #         echo "Renaming old random start dir ($old_random_start_name) to new random start dir ($random_start_name) for iteration $i"
+        #         mv "$old_random_start_name" "$random_start_name"
+        #     else
+        #         echo "FAIL: Directory not found: $1 EXITING"
+        #         exit 1 # explicitly fail
+        #     fi
+        # 
+        #     # rename all dirs to random names
+        #     echo "find operation iteration $i"
+        #     find "$random_start_name" -mindepth 1 -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \;
+        # 
+        #     old_random_start_name=$random_start_name # store for next iteration
+        # done
         
         # then rename dirs to nullbytes to make sure no names remain
         # TODO: fix this to work
-        # find "$random_start_name" -path ".git" -prune -o -type d -exec mv {} $(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none) \;
+        find "$1" -mindepth 1 -type d -exec mv {} "$(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none)" \;
 
         # then nuke the all empty dirs
         rm -rf "$random_start_name"
