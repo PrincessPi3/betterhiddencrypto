@@ -58,9 +58,21 @@ shred_dir() {
             # get random starting dir name for this iteration
             random_start_name=$(openssl rand -hex $max_length_dir_name_shred)
 
+            # make the random starting dir
+            if [ -d "$1" ]; then
+                mv "$1" "$random_start_name"
+            elif [ -d "$old_random_start_name" ]; then
+                mv "$old_random_start_name" "$random_start_name"
+            else
+                echo "FAIL: Directory not found: $1 EXITING"
+                exit 1 # explicitly fail
+            fi
+
             # rename all dirs to random names
             echo "find operation iteration $i"
             find "$random_start_name" -mindepth 1 -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \;
+
+            old_random_start_name=$random_start_name # store for next iteration
         done
         
         # then rename dirs to nullbytes to make sure no names remain
