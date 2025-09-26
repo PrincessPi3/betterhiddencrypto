@@ -55,18 +55,9 @@ shred_dir() {
         find "$1" -path ".git" -prune -o -type f -exec shred --zero --remove --force --iterations=$shred_iterations {} \;
         # first phase is to rename all dirs to random names to break the structure
         for i in $(seq 1 $shred_iterations); do
-            # generate random name for this iteration
-            random_start_name=$(openssl rand -hex $max_length_dir_name_shred)
-
-            # if the dir still exists under original name use that
-            if [ -d "$1" ]; then
-                echo "Renaming $1 to $random_start_name"
-                mv  "$1" "$random_start_name"
-            fi
-
             # rename all dirs to random names
             echo "find operation iteration $i"
-            find "$random_start_name" -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \; 
+            find "$1" -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \;
         done
         
         # then rename dirs to nullbytes to make sure no names remain
@@ -74,7 +65,7 @@ shred_dir() {
         # find "$random_start_name" -path ".git" -prune -o -type d -exec mv {} $(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none) \;
 
         # then nuke the all empty dirs
-        rm -rf "$known_random_name"
+        rm -rf "$1"
     elif [ -f "$1" ]; then # if its a file
         # three iterations plus a zeroing and deletion
         shred --zero --remove --force --iterations=$shred_iterations "$1" # 1>/dev/null 2>/dev/null
