@@ -60,7 +60,8 @@ shred_dir() {
         done
 
         # then rename dirs to nullbytes to make sure no names remain
-        find "$1" -path ".git" -prune -o -type d -exec mv {} $(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none) \;
+        # TODO: fix this to work
+        # find "$1" -path ".git" -prune -o -type d -exec mv {} $(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none) \;
 
         # then nuke the all empty dirs
         rm -rf "$1"
