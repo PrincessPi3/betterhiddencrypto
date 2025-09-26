@@ -200,7 +200,11 @@ retrieve_7z_salt() {
 }
 
 encrypty(){
-    echo "ENCRYPTING Starting..."
+    if [ $DEBUG -gt 0 ]; then
+        debug_echo "ENCRYPTING Starting..."
+    else
+        debug_echo "ENCRYPTION STARTING: vars: dir_to_encrypt: $dir_to_encrypt, encrypted_archive_name: $encrypted_archive_name, encrypted_volume_name: $encrypted_volume_name, backup_dir: $backup_dir, salt_length: $salt_length, max_length_dir_name_shred: $max_length_dir_name_shred, shred_iterations: $shred_iterations"
+    fi
 
     # check da passphrases for match
     echo -e "\nEnter Passphrase: "
@@ -275,7 +279,12 @@ encrypty(){
 }
 
 decrypty(){
-    echo "DECRYPTION Starting..."
+    if [ $DEBUG -gt 0 ]; then
+     debug_echo "DECRYPTION STARTING: vars: dir_to_encrypt: $dir_to_encrypt, encrypted_archive_name: $encrypted_archive_name, encrypted_volume_name: $encrypted_volume_name, backup_dir: $backup_dir, salt_length: $salt_length, max_length_dir_name_shred: $max_length_dir_name_shred, shred_iterations: $shred_iterations"
+    else
+        echo "DECRYPTION STARTING..."
+    fi
+
     echo -e "\nEnter Passphrase: "
     read -s passphrase
 
