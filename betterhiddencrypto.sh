@@ -11,7 +11,7 @@ encrypted_archive_name="./.volume.bin"
 encrypted_volume_name="./.encrypted_volume.7z"
 backup_dir="./.volume_old"
 salt_length=16 # in 8-bit bytes (16 bytes = 128 bits)
-max_length_dir_name_shred=256 # max length for renaming dirs during shred
+max_length_dir_name_shred=128 # max length for renaming dirs during shred
 shred_iterations=3 # number of iterations to do shredding files and dir names
 
 environment_check() {
