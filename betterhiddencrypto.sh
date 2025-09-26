@@ -65,12 +65,9 @@ shred_dir() {
             fi
 
             # rename all dirs to random names
-            echo "find operatio"n iteration $i"
+            echo "find operation iteration $i"
             find "$random_start_name" -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \; 
         done
-
-        # then rename them to known name to nuke
-        find "$random_start_name" -path ".git" -prune -o -type d -exec mv {} $random_start_name \;
         
         # then rename dirs to nullbytes to make sure no names remain
         # TODO: fix this to work
