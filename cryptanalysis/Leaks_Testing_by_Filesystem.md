@@ -3,9 +3,9 @@
 ### Create Test Disk
 [zero_recreate_disk.sh](./zero_recreate_disk.sh)
 ### OS disk
-1. Zero a drive
-2. Install Kali on drive
-3. Update Kali
+1. Zwer
+2. Install OS on drive
+3. Update OS
 4. Install any needed remaining tools
 5. git clone after reboot
 6. Run encryption 
