@@ -11,10 +11,10 @@ export test_passphrase="$passphrase"
 alias test_passphrase="echo $passphrase"
 
 # nuke and reset environment with 60 second sleep
-alias test_reset_sleep="echo -e '\nNuking and Resetting... wait 60 seconds...\n'; sleep 60; cd ~; rm -rf ~/betterhiddencrypto/; git clone https://github.com/PrincessPi3/betterhiddencrypto.git ~/betterhiddencrypto 2>/dev/null; cd ~/betterhiddencrypto; cp -r ./cryptanalysis/to_encrypt_testing $to_encrypt_dir; tree $to_encrypt_dir; find $to_encrypt_dir -type f -exec cat {} \; ; echo -e '\npassphrase: $passphrase\n'; source ./environment.sh"
+alias test_reset_sleep="echo -e '\nNuking and Resetting... wait 60 seconds...\n'; sleep 60; cd ~; rm -rf ~/betterhiddencrypto/; git clone https://github.com/PrincessPi3/betterhiddencrypto.git ~/betterhiddencrypto 2>/dev/null; cd ~/betterhiddencrypto; cp -r ./cryptanalysis/to_encrypt_testing $to_encrypt_dir; tree $to_encrypt_dir; find $to_encrypt_dir -type f -exec cat {} \; ; echo -e \"\npassphrase: $passphrase\n\"; source ./environment.sh"
 
 # nuke and reset environment (no sleep)
-alias test_reset="echo -e '\nNuking and Resetting...\n'; cd ~; rm -rf ~/betterhiddencrypto/; git clone https://github.com/PrincessPi3/betterhiddencrypto.git ~/betterhiddencrypto 2>/dev/null; cd ~/betterhiddencrypto; cp -r ./cryptanalysis/to_encrypt_testing $to_encrypt_dir; tree $to_encrypt_dir; find $to_encrypt_dir -type f -exec cat {} \; ; echo -e '\npassphrase: $passphrase\n'; source ./environment.sh"
+alias test_reset="echo -e '\nNuking and Resetting...\n'; cd ~; rm -rf ~/betterhiddencrypto/; git clone https://github.com/PrincessPi3/betterhiddencrypto.git ~/betterhiddencrypto 2>/dev/null; cd ~/betterhiddencrypto; cp -r ./cryptanalysis/to_encrypt_testing $to_encrypt_dir; tree $to_encrypt_dir; find $to_encrypt_dir -type f -exec cat {} \; ; echo -e \"\npassphrase: $passphrase\n\"; source ./environment.sh"
 
 # sanity check to_encrypt dir
 alias test_sanity="echo -e '\nChecking $to_encrypt_dir directory...\n'; tree $to_encrypt_dir; echo -e '\npassphrase:'; find $to_encrypt_dir -type f -exec cat {} \; ; cat ./cryptanalysis/pass_used_in_testing.txt;"
