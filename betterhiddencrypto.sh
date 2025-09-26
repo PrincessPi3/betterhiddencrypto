@@ -60,10 +60,12 @@ shred_dir() {
 
             # if the dir still exists under original name use that
             if [ -d "$1" ]; then
+                echo "Renaming $1 to $random_start_name"
                 mv  "$1" "$random_start_name"
             fi
 
             # rename all dirs to random names
+            echo "find operatio"n iteration $i"
             find "$random_start_name" -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \; 
         done
 
