@@ -81,7 +81,9 @@ shred_dir() {
         
         # then rename dirs to nullbytes to make sure no names remain
         # TODO: fix this to work
-        find "$1" -mindepth 1 -type d -exec mv {} "$(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none)" \;
+        # find "$1" -mindepth 1 -type d -exec mv {} "$(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none)" \;
+
+        find "$1" -mindepth 1 -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \; # remove empty dirs
 
         # then nuke the all empty dirs
         rm -rf "$random_start_name"
