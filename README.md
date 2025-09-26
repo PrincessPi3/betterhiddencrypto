@@ -18,6 +18,23 @@ To that end, I'm using the secure-delete package to secure wipe any temporary or
 srm is used to delete files and directories immediately upon compl,eting the next step successfully.  
 smem is used to wipe unallocated RAM to ensure that no remaning traces of data are left in memory even with a sophisticated memory forensics or cold boot attack.   
 
+### Volume file format
+#### Outer Layer (AES-256-GCM)
+| Segment | Length (bytes) |
+|:---|---:|
+| Salt       | 16             |
+| IV         | 16             |
+| GCM Tag    | 16             |
+| Ciphertext | * (remaining)  |
+#### Inner Layer (7zip encryption)
+| Segment | Length (bytes) |
+|:---|---:|
+| Encrypted 7zip Archive | * (remaining)  |
+| Salt                   | 16             |
+
+Argon2id Salt: 16 bytes
+Initilialization Vector (IV): 16 bytes
+
 ## Antiforensics
 1. All unneeded data is robustly shredded immediately upon confirming that it is no longer needed.
 2. Extremely fast, most-sensitive-first nuke mode to destory all of the data in this dir, including encrypted volumes, their backups, any dangling unencrypted data, followd by optional immediate shutdown.

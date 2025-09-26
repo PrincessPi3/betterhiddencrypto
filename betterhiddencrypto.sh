@@ -10,7 +10,7 @@ dir_to_encrypt="./to_encrypt"
 encrypted_archive_name="./.volume.bin"
 encrypted_volume_name="./.encrypted_volume.7z"
 backup_dir="./.volume_old"
-salt_length=16 # in bytes
+salt_length=16 # in 8-bit bytes (16 bytes = 128 bits)
 
 environment_check() {
     # chezh em if both dir and archive dont exist
