@@ -60,8 +60,10 @@ shred_dir() {
 
             # make the random starting dir
             if [ -d "$1" ]; then
+                echo "Renaming start dir ($1) to random start dir ($random_start_name) for iteration $i"
                 mv "$1" "$random_start_name"
             elif [ -d "$old_random_start_name" ]; then
+                echo "Renaming old random start dir ($old_random_start_name) to new random start dir ($random_start_name) for iteration $i"
                 mv "$old_random_start_name" "$random_start_name"
             else
                 echo "FAIL: Directory not found: $1 EXITING"
