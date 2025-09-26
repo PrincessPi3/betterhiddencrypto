@@ -64,7 +64,7 @@ shred_dir() {
             fi
 
             # rename all dirs to random names
-            find "$random_start_name/." -path ".git" -prune -o -type d -exec mv {} $random_start_name \; # 1>/dev/null 2>/dev/null
+            find "$random_start_name/*" -path ".git" -prune -o -type d -exec mv {} $random_start_name \; # 1>/dev/null 2>/dev/null
         done
 
         # then rename them to known name to nuke
