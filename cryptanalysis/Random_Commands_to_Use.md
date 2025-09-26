@@ -1,0 +1,2 @@
+reset environment  
+`cd ~; rm -rf ~/betterhiddencrypto/; git clone https://github.com/PrincessPi3/betterhiddencrypto.git; cd ~/betterhiddencrypto; cp -r cryptanalysis/to_encrypt_testing ./to_encrypt; tree to_encrypt;`
