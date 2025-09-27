@@ -334,7 +334,7 @@ decrypty(){
 # main
 
 if [ $DEBUG -gt 0 ]; then
-    echo -e "\nDebug mode enabled, logging to $log_file\n"
+    echo -e "\nWARNING: DEBUG MODE IS UNSAFE LOGGING TO $log_file\n"
     echo -e "Debug Log - $(date)\n" > "$log_file" # create/clear log file
 fi
 
