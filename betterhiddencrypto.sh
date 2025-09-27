@@ -177,7 +177,7 @@ retrieve_prepend_7z_salt() {
     # remove the salt from the archive
     dd if=$encrypted_archive_name of=$encrypted_archive_name_tmp bs=1 skip=16
 
-    # do da thingggg
+    # do da thingggg reset working bin to the the tmp file var
     encrypted_archive_name="$encrypted_archive_name_tmp"
 }
 
