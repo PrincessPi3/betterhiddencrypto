@@ -166,7 +166,7 @@ append_7z_salt() {
 prepend_7z_salt() {
     salt="$1"
 
-    printf "${1}$(cat "$encrypted_archive_name")" > "$encrypted_archive_name"
+    printf "$1$(cat $encrypted_archive_name)" > "$encrypted_archive_name"
 }
 
 # todo sanity checks and silent it
