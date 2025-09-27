@@ -64,7 +64,7 @@ environment_check() {
 # also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
 shred_dir() {
     if [ -d "$1" ]; then # if its a dir
-        debug_echo "Shredding directory: $1"
+        debug_echo "Shredding and deleting directory: $1 with $shred_iterations iterations"
 
         # next phase is to shred all files in the dir
         find "$1" -path ".git" -prune -o -type f -exec shred --zero --remove --force --iterations=$shred_iterations {} \;
@@ -104,7 +104,7 @@ shred_dir() {
         rm -rf "$1"
     elif [ -f "$1" ]; then # if its a file
         # three iterations plus a zeroing and deletion
-        debug_echo "Shredding file: $1"
+        debug_echo "Shredding and deleting file: $1 with $shred_iterations iterations"
         shred --zero --remove --force --iterations=$shred_iterations "$1" # 1>/dev/null 2>/dev/null
     else # fail
         echo "FAIL: Directory or file not found: $1 EXITING"
@@ -247,15 +247,20 @@ encrypty(){
     fi
 
     # nuke to_encrypt dir
-    debug_echo "\tArchive passed check, Shredding directory..."
+    debug_echo "Archive passed check, Shredding directory..."
     shred_dir "$dir_to_encrypt"
 
     # do the second pass encryption
-    debug_echo "\tSuccessfully shredded directory, Running second pass encryption..."
-    python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name" $DEBUG
+    debug_echo "Successfully shredded directory, Running second pass encryption..."
+    if [ $DEBUG -gt 0 ]; then
+        debug_return=$(python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name" $DEBUG)
+        debug_echo "$debug_return"
+    else
+        python betterhiddencrypto.py enc "$passphrase" "$encrypted_volume_name" "$encrypted_archive_name" $DEBUG
+    fi
 
     # shred da 7z file
-    debug_echo "\tSuccessfully encrypted, Shredding Archive..."
+    debug_echo "Successfully encrypted, Shredding Archive..."
     shred_dir "$encrypted_volume_name"
 
     # check for bak archive and backup if exists
