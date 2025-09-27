@@ -15,7 +15,7 @@ read disk
 block="/dev/${disk}"
 
 echo -e "\nZeroing $block"
-sudo cat /dev/zero > $block
+sudo dd if=/dev/zero of=$block status=progress bs=32M conv=fdatasync
 
 echo -e "\nCreating Partitions on $block"
 sudo echo ',,b;' | sudo sfdisk $block
