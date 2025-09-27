@@ -282,7 +282,7 @@ encrypty(){
 
     # prepend salt bytes to archive
     debug_echo "Storing salt for first pass..."
-    prepend_7z_salt "$salt"
+    append_7z_salt "$salt"
 
     echo -e "\nSuccess: Encryption done! Encrypted to $encrypted_archive_name"
 }
@@ -301,7 +301,7 @@ decrypty(){
 
     # retreive da salt
     debug_echo "Retrieving salt for first pass..."
-    salt=$(retrieve_prepend_7z_salt)
+    salt=$(retrieve_7z_salt)
     
     debug_echo "Salt: $(echo -n $salt | xxd -p)" # print salt in hex
 
