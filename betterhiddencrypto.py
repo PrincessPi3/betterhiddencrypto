@@ -113,7 +113,7 @@ if __name__ == "__main__":
     input_file = sys.argv[3]
     output_file = sys.argv[4]
     debug_mode = sys.argv[5]
-    if debug_mode.lower() in ("1", "true", "yes", "y"):
+    if debug_mode.lower() in ("1", "2", "true", "yes", "y"):
         debug_mode = True
     else:
         debug_mode = False 
