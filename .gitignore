@@ -2,6 +2,7 @@
 *.7z*
 *.tmp*
 *.bak*
+*_debug_log.txt
 to_encrypt/*
 !to_encrypt/README.md
 .volume_old/*
