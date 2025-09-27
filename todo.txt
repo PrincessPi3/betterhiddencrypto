@@ -84,3 +84,8 @@ randomness and correlation tests via
     dieharder
         randomness tests
         correlation tests
+maybe:
+    keyfiles
+    yubikey crypto handshake thing
+    dead man's switch (requires some kinda platform)
+    duress passphrase (nukes)
