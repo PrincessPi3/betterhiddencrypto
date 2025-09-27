@@ -10,6 +10,7 @@ DEBUG=0 # 0 = no debug, 1 = console debug, 2 = log file+console debug
 # dir_to_encrypt="./to_encrypt"
 dir_to_encrypt="/tmp/to_encrypt" # only in memory fs for security
 encrypted_archive_name="./.volume.bin"
+encrypted_archive_name_tmp="/tmp/.volume.bin.tmp"
 encrypted_volume_name="/tmp/.encrypted_volume.7z"
 backup_dir="./.volume_old"
 salt_length=16 # in 8-bit bytes (16 bytes = 128 bits)
@@ -174,7 +175,10 @@ retrieve_prepend_7z_salt() {
     head -c $salt_length "$encrypted_archive_name"
     
     # remove the salt from the archive
-    truncate -s $salt_length "$encrypted_archive_name"
+    dd if=$encrypted_archive_name of=$encrypted_archive_name_tmp bs=1 skip=16
+
+    # do da thingggg
+    encrypted_archive_name="$encrypted_archive_name_tmp"
 }
 
 # todo sanity checks and silent it
