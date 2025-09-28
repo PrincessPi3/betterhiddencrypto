@@ -20,3 +20,12 @@ and/or refactor away
         $env:tmp (ps)
         /tmp (*nix)
         ramdisk??
+    sha512
+
+refactoring changesss
+    7z crypto KDF
+        real KDF argon2id
+        real salt
+        then passed through sha512?
+            will bytes work too? :thining:
+    all tags, ivs, and salts will be PREPENDED if practical to make antiforensics more effective with just the first few bytes
