@@ -20,7 +20,7 @@ and/or refactor away
         $env:tmp (ps)
         /tmp (*nix)
         ramdisk??
-    sha512
+    sha512(?)
     force shutdown
 
 refactoring changesss
@@ -37,3 +37,28 @@ implementations
 
 installer
     requirements.txt because fuckem
+
+crypto tests:
+    loop KDF for both layers
+        dieharder correlation testing
+        entropy testing
+            visualizations
+            charts
+            calculated values
+        dieharder randomness testing
+    loop encrypt same data with random passphrase
+        entropy testing
+            visualizations
+            charts
+            calculated values
+        dieharder random testing
+    hidden volume
+        loop encrypt/decrypt and hidden encrypt/decrypt
+            dieharder correlation teating
+            dieharder randomness testing
+            entropy testing
+                visualizations
+                charts
+                calculated values
+    offline scan for leaked bytes
+        by platform
