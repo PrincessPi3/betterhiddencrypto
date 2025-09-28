@@ -1,5 +1,0 @@
-delete whole repo dir, re-clone it, delete the default to_encrypt and copy cryptanalysis/to_encrypt_testing to ./to
-    cd ~ && rm -rf betterhiddencrypto && git clone https://github.com/PrincessPi3/betterhiddencrypto.git && cd betterhiddencrypto && rm -rf to_encrypt && cp -r cryptanalysis/to_encrypt_testing to_encrypt
-
-view the contents of all files in to_encrypt
-    find to_encrypt -type f -exec cat {} \;
