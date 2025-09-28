@@ -12,5 +12,11 @@ and/or refactor away
     printf
     truncate
     cp
+    mv
     cat
     mkdir
+    some kinda memory space like
+        %tmp% (cmd)
+        $env:tmp (ps)
+        /tmp (*nix)
+        ramdisk??
