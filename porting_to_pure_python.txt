@@ -1,0 +1,16 @@
+cross platform
+standards compliant ironclad trusted libs
+strict version and library/prerequiite version logging
+
+need to replace deez tools
+and/or refactor away
+    shred
+    7zip
+    openssl
+        sub any cryptographically secure cryptographic rng
+    find
+    printf
+    truncate
+    cp
+    cat
+    mkdir
