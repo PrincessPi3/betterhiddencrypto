@@ -21,6 +21,7 @@ and/or refactor away
         /tmp (*nix)
         ramdisk??
     sha512
+    force shutdown
 
 refactoring changesss
     7z crypto KDF
@@ -29,3 +30,10 @@ refactoring changesss
         then passed through sha512?
             will bytes work too? :thining:
     all tags, ivs, and salts will be PREPENDED if practical to make antiforensics more effective with just the first few bytes
+
+implementations
+    hidden volume(?)
+    gui(?)
+
+installer
+    requirements.txt because fuckem
