@@ -1,5 +1,5 @@
 #!/bin/bash
-# packages: python3, pip, 7z, ugrep, coreutils, openssl
+# packages: python3, pip, 7z, ripgrep, coreutils, openssl
 # pip packages: pycryptodome, argon2-cffi
 
 # fail on error
