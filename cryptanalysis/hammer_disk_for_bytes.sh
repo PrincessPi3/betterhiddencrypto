@@ -9,8 +9,8 @@ key='dimple' # key bytes like '\x22\x77\x77'
 7zkey='testtext' # 7z passphrase like 'fad48ae' 
 
 disktotalbytes=$(du $device | awk '{print $1}')
-diskdivbytes=$(($(du /dev/sdc | awk '{print $1}') / $atatime))
-diskremainderbytes=$(($(du /dev/sdc | awk '{print $1}') % $atatime))
+diskdivbytes=$(($(du $device | awk '{print $1}') / $atatime))
+diskremainderbytes=$(($(du $device | awk '{print $1}') % $atatime))
 
 loops=$(($diskdivbytes + 1))
 offset=0
