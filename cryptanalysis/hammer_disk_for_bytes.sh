@@ -1,7 +1,8 @@
 #!/bin/bash
-if [ -z "$1" ]; then
-	echo "Usage: scandriveforbytes.sh <block device> <num of bytes to process at a time> <key bytes> <7z key>"
-	
+# if [ -z "$1" ]; then
+# 	echo "Usage: scandriveforbytes.sh <block device> <num of bytes to process at a time> <key bytes> <7z key>"
+# fi
+
 device=/dev/sda # $1 # block device (ex. /dev/sdX)
 atatime=1000 # $2 # num bytes process at a time (ex. 1000)
 key='dimple' # key bytes like '\x22\x77\x77'
