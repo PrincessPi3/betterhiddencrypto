@@ -26,4 +26,6 @@ for (( i = 0 ; i < $loops; i++ )); do
 	 else
 		 offset=$(($i * $atatime))
 	fi
+
+    echo $offset
 done
