@@ -20,7 +20,7 @@ echo -e "device: $device\natatime: $atatime\nkey: $key\nsevenzkey: $sevenzkey\nd
 for (( i = 0 ; i < $loops; i++ )); do
     # echo "testing offset $offset length $atatime"
 	 sudo dd if=$device bs=1 skip=$offset count=$atatime status=none |\
-		 sudo rg -aobUuuu -e 'testtext' -e "(?-u)$key" -e "(?-u)$sevenzkey"
+		 rg -aobUuuu -e 'testtext' -e "(?-u)$key" -e "(?-u)$sevenzkey"
 		 
 	 if [ $i -eq $loops ]; then
 		 offset=$(($i * $atatime + $diskremainderbytes))
