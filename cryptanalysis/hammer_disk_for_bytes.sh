@@ -15,6 +15,8 @@ diskremainderbytes=$(($(du $device | awk '{print $1}') % $atatime))
 loops=$(($diskdivbytes + 1))
 offset=0
 
+echo -e "device: $device\natatime: $atatime\nkey: $key\nsevenzkey: $sevenzkey\ndisktotalbytes: $disktotalbyte\ndiskdivbytes: $diskdivbytes\ndiskremainderbytes: $diskremainderbytes\nloops: $loops"
+
 for i in $(seq 0 $diskdivbytes); do
 	 sudo dd if=$device bs=1 skip=$offset count=$atatime status=none |\
 		 sudo rg -aobUuuu -e 'testtext' -e "(?-u)$key" -e "(?-u)$sevenzkey"
