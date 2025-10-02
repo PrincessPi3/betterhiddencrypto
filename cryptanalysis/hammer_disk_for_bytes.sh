@@ -6,7 +6,7 @@
 device=/dev/sda # $1 # block device (ex. /dev/sdX)
 atatime=1000 # $2 # num bytes process at a time (ex. 1000)
 key='dimple' # key bytes like '\x22\x77\x77'
-7zkey='testtext' # 7z passphrase like 'fad48ae' 
+sevenzkey='testtext' # 7z passphrase like 'fad48ae' 
 
 disktotalbytes=$(du $device | awk '{print $1}')
 diskdivbytes=$(($(du $device | awk '{print $1}') / $atatime))
@@ -17,7 +17,7 @@ offset=0
 
 for ((i=0; i<$loops; $i++)); do
 	 sudo dd if=$device bs=1 skip=$offset count=$atatime status=none |\
-		 sudo rg -aobUuuu -e 'testtext' -e '(?-u)<key bytes>'
+		 sudo rg -aobUuuu -e 'testtext' -e "(?-u)$key" -e "(?-u)$sevenzkey"
 		 
 	 if [ $i -eq $loops ]; then
 		 offset=$(($i * $atatime + $diskremainderbytes))
