@@ -8,9 +8,9 @@ atatime=1000 # $2 # num bytes process at a time (ex. 1000)
 key='dimple' # key bytes like '\x22\x77\x77'
 sevenzkey='testtext' # 7z passphrase like 'fad48ae' 
 
-disktotalbytes=$(du $device | awk '{print $1}')
-diskdivbytes=$(($(du $device | awk '{print $1}') / $atatime))
-diskremainderbytes=$(($(du $device | awk '{print $1}') % $atatime))
+disktotalbytes=$(($(df | rg 'sda' | awk '{print $2}') * 1000))
+diskdivbytes=$(($(df | rg 'sda' | awk '{print $2}') * 1000 / $atatime)) 
+diskremainderbytes=$(($(df | rg 'sda' | awk '{print $2}') * 1000 % $atatime))
 
 loops=$(($diskdivbytes + 1))
 offset=0
