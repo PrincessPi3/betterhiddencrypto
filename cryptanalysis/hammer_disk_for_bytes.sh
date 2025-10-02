@@ -18,9 +18,10 @@ offset=0
 echo -e "device: $device\natatime: $atatime\nkey: $key\nsevenzkey: $sevenzkey\ndisktotalbytes: $disktotalbyte\ndiskdivbytes: $diskdivbytes\ndiskremainderbytes: $diskremainderbytes\nloops: $loops"
 
 for (( i = 0 ; i < $loops; i++ )); do
-    echo "testing offset $offset length $atatime"
+    # echo "testing offset $offset length $atatime"
 
-	 echo sudo dd if=$device bs=1 skip=$offset count=$atatime status=none  rg -o -b -U -uuu --text -e 'testtext' # -e "(?-u)$key" -e "(?-u)$sevenzkey"
+	 sudo dd if=$device bs=1 skip=$offset count=$atatime status=none |\
+        rg -o -b -U -uuu --text -e 'testtext' -e "(?-u)$key" -e "(?-u)$sevenzkey"
 		 
 	 if [ $i -eq $loops ]; then
 		 offset=$(($i * $atatime + $diskremainderbytes))
