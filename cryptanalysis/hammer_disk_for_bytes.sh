@@ -21,6 +21,7 @@ for (( i = 0 ; i < $loops; i++ )); do
     # echo "testing offset $offset length $atatime"
 	 sudo dd if=$device bs=1 skip=$offset count=$atatime status=none |\
 		 sha256sum
+    echo $offset
          # rg -o -b -U -uuu --text -e 'testtext' # -e "(?-u)$key" -e "(?-u)$sevenzkey"
 		 
 	 if [ $i -eq $loops ]; then
