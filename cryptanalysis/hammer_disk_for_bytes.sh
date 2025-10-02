@@ -15,7 +15,7 @@ diskremainderbytes=$(($(du $device | awk '{print $1}') % $atatime))
 loops=$(($diskdivbytes + 1))
 offset=0
 
-for ((i=0; i<$loops; $i++)); do
+for i in $(seq 0 $diskdivbytes); do
 	 sudo dd if=$device bs=1 skip=$offset count=$atatime status=none |\
 		 sudo rg -aobUuuu -e 'testtext' -e "(?-u)$key" -e "(?-u)$sevenzkey"
 		 
