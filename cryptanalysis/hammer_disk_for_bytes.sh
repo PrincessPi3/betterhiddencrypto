@@ -9,7 +9,7 @@ key='dimple' # key bytes like '\x22\x77\x77'
 sevenzkey='testtext' # 7z passphrase like 'fad48ae' 
 
 disktotalbytes=$(($(lsblk -b | rg 'sda' | head -1 | awk '{print $4}') * 1000))
-diskdivbytes=$(($(lsblk -b | rg 'sda' | head -1 | awk '{print $4}') * 1000 / $atatime)) 
+diskdivbytes=$(($(($(lsblk -b | rg 'sda' | head -1 | awk '{print $4}') * 1000)) / $atatime)) 
 diskremainderbytes=$(($(lsblk -b | rg 'sda' | head -1 | awk '{print $4}') * 1000 % $atatime))
 
 loops=$(($diskdivbytes + 1))
