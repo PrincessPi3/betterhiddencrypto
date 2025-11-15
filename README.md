@@ -40,6 +40,7 @@ Initilialization Vector (IV): 16 bytes
 2. Extremely fast, most-sensitive-first nuke mode to destory all of the data in this dir, including encrypted volumes, their backups, any dangling unencrypted data, followd by optional immediate shutdown.
 3. Intense amateur antiforensics/cryptographic testing and iterative improvement going on over in [cryptanalysis/](./cryptanalysis/README.md)
 4. Custom directory file name shredding function in addition to shredding files
+5. All cleartext and temp files handled in ramdisk automatically
 
 ## Back Up Your Shit
 * This script is probably as unstable as I am and will probably end up nuking your files
