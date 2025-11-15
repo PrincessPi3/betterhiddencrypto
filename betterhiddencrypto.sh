@@ -7,11 +7,15 @@ set -e # important to prevent data loss in event of a failure
 
 # CHANGE da config here if ya like
 DEBUG=0 # 0 = no debug, 1 = console debug, 2 = log file+console debug
+ramdisk="/ramdisk"
+ramdisk_file="$ramdisk/.ramdisk"
+default_size=2G
+mode=1777
 # dir_to_encrypt="./to_encrypt"
-dir_to_encrypt="/tmp/to_encrypt" # only in memory fs for security
+dir_to_encrypt="$ramdisk/to_encrypt" # only in memory fs for security
 encrypted_archive_name="./.volume.bin"
-encrypted_archive_name_tmp="/tmp/.volume.bin.tmp"
-encrypted_volume_name="/tmp/.encrypted_volume.7z"
+encrypted_archive_name_tmp="$ramdisk/.volume.bin.tmp"
+encrypted_volume_name="$ramdisk/.encrypted_volume.7z"
 backup_dir="./.volume_old"
 salt_length=16 # in 8-bit bytes (16 bytes = 128 bits)
 max_length_dir_name_shred=64 # max length for renaming dirs during shred
@@ -61,9 +65,16 @@ environment_check() {
     fi
 }
 
+fix_ramdisk_perms() {
+    sudo chmod -R 777 "$ramdisk"
+    sudo chown -R $USER:$USER "$ramdisk"
+}
+
 # switchan to shred and find because secure-delete is old af
 # also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
 shred_dir() {
+    fix_ramdisk_perms
+
     if [ -d "$1" ]; then # if its a dir
         debug_echo "Shredding and deleting directory: $1 with $shred_iterations iterations"
 
@@ -103,7 +114,7 @@ shred_dir() {
 
         # then nuke the all empty dirs
         rm -rf "$1"
-    elif [ -f "$1" ]; then # if its a file
+    elif [ -f "$1" ]; then # if its a file        
         # three iterations plus a zeroing and deletion
         debug_echo "Shredding and deleting file: $1 with $shred_iterations iterations"
         shred --zero --remove --force --iterations=$shred_iterations "$1" # 1>/dev/null 2>/dev/null
@@ -113,11 +124,53 @@ shred_dir() {
     fi
 }
 
+ramdisk_toggle() {
+    # make the mount point if not exist
+    if [ ! -d "$ramdisk" ]; then
+        echo "$ramdisk doensnt exist, creating..."
+        sudo mkdir -p "$ramdisk"
+    fi
+
+    # if the ramdisk is active (ramdisk_file exists)
+    if [ -f "$ramdisk_file" ]; then
+        echo "ramdisk is operating, umounting"
+        sudo umount "$ramdisk"
+        exit 0
+
+    fi
+
+    # handle ramdisk size and default
+    if [ -z "$1" ]; then
+        echo "Using default ramdisk size of $default_size"
+        ramdisk_size=$default_size
+    else
+        echo "Using size $1"
+        ramdisk_size=$1
+    fi
+
+    # mount ramdisk
+    sudo mount -t tmpfs -o rw,nodev,size=$ramdisk_size,mode=$mode tmpfs $ramdisk
+    ret=$?
+
+    # check
+    if [ $ret -ne 0 ]; then
+        echo "Error mounting ramdisk $ramdisk ($ramdisk_size) return code $ret"
+    else
+        echo "Mounted ramdisk $ramdisk ($ramdisk_size)"
+
+        # create the ramdisk_file
+        echo 1 > "$ramdisk_file" 
+    fi
+
+}
+
 # note: rework and add nuke alias to rcfile something llike
 ##   alias EMERGENCY_NUKE='setsid bash /path/to/betterhiddencrypto.sh ns; clear; exit'
 EMERGENCY_NUKE() {
     # NUKE EVERYFUCKINGTHING IN THIS DIR
     # CRASH IT WITH NO SURVIVors
+
+    fix_ramdisk_perms
 
     # first phase just tosses the encryption headers (top 164 bytes) from the .volume.bin files and backups
     # this is done first and fast as possible for emergencies
@@ -157,6 +210,7 @@ new_7z_salt() {
 
 # todo sanity checks and silent it
 append_7z_salt() {
+    fix_ramdisk_perms
     salt="$1"
     # append the salt to the encrypted archive
     printf "$salt" >> "$encrypted_archive_name"
@@ -164,18 +218,23 @@ append_7z_salt() {
 
 # todo sanity checks and silent it
 prepend_7z_salt() {
-    salt="$1"
-
-    printf "%s" "$1$(cat $encrypted_archive_name)" > "$encrypted_archive_name"
+    fix_ramdisk_perms
+    # echo "$salt$(cat $encrypted_archive_name)" > "$encrypted_archive_name"
+    echo -n "$1$(cat $encrypted_archive_name)" > "$encrypted_archive_name"
 }
 
 # todo sanity checks and silent it
 retrieve_prepend_7z_salt() {
+    fix_ramdisk_perms
+
     # get the stored salt
     head -c $salt_length "$encrypted_archive_name"
-    
+   
     # remove the salt from the archive
-    dd if=$encrypted_archive_name of=$encrypted_archive_name_tmp bs=1 skip=16
+    ## redirect stdout to /dev/null and allow stderr (progress) to show
+    # dd if="$encrypted_archive_name" of="$encrypted_archive_name_tmp" bs=1 skip=$salt_length status=progress 1>/dev/null
+
+    truncate -s $salt_length "$encrypted_archive_name"
 
     # do da thingggg reset working bin to the the tmp file var
     encrypted_archive_name="$encrypted_archive_name_tmp"
@@ -226,7 +285,8 @@ encrypty(){
     # generate new salt
     debug_echo "Generating new salt for first pass..."
     salt=$(new_7z_salt)
-    debug_echo "Salt: $(echo -n $salt | xxd -p)" # print salt in hex
+
+    debug_echo "Salt: $(echo $salt | xxd -p)" # print salt in hex
 
     debug_echo "Compressing Directory and performing first pass encryption..."
     # digest the passphrase to add as a statistically indepentant 7zip passphrase
@@ -234,12 +294,16 @@ encrypty(){
     digested_passphrase=$(7z_digest_passphrase "$passphrase" "$salt")
     debug_echo "Digested Passphrase: $digested_passphrase"
 
+    fix_ramdisk_perms
+
     if [ $DEBUG -gt 0 ]; then
         debug_return=$(7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt")
         debug_echo "$debug_return"
     else
-        7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" 1>/dev/null # silent unless error
+        7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" # 1>/dev/null # silent unless error
     fi
+
+    fix_ramdisk_perms
 
     # test the new archive for integrity before nuking shit
     debug_echo "Successfully compressed, Testing archive integrity..."
@@ -247,12 +311,16 @@ encrypty(){
         debug_return=$(7z t -p"$digested_passphrase" "$encrypted_volume_name")
         debug_echo "$debug_return"
     else
-        7z t -p"$digested_passphrase" "$encrypted_volume_name" 1>/dev/null # do this silently unless fail
+        7z t -p"$digested_passphrase" "$encrypted_volume_name" # 1>/dev/null # do this silently unless fail
     fi
+
+    fix_ramdisk_perms
 
     # nuke to_encrypt dir
     debug_echo "Archive passed check, Shredding directory..."
     shred_dir "$dir_to_encrypt"
+
+    fix_ramdisk_perms
 
     # do the second pass encryption
     debug_echo "Successfully shredded directory, Running second pass encryption..."
@@ -267,6 +335,8 @@ encrypty(){
     debug_echo "Successfully encrypted, Shredding Archive..."
     shred_dir "$encrypted_volume_name"
 
+    fix_ramdisk_perms
+
     # check for bak archive and backup if exists
     if [ -f "$encrypted_archive_name.bak" ]; then
         timestamp=$(date +"%d%m%Y-%H%M")
@@ -279,6 +349,8 @@ encrypty(){
         debug_echo "\tBacking up new archive ($encrypted_archive_name.bak)"
         cp "$encrypted_archive_name" "$encrypted_archive_name.bak"
     fi
+
+    fix_ramdisk_perms
 
     # prepend salt bytes to archive
     debug_echo "Storing salt for first pass..."
@@ -299,11 +371,15 @@ decrypty() {
 
     debug_echo "\tPassphrase: $passphrase"
 
+    fix_ramdisk_perms
+
     # retreive da salt
     debug_echo "Retrieving salt for first pass..."
     salt=$(retrieve_7z_salt)
-    
-    debug_echo "Salt: $(echo -n $salt | xxd -p)" # print salt in hex
+
+    debug_echo "Salt: $(echo $salt | xxd -p)" # print salt in hex
+
+    fix_ramdisk_perms
 
     # first comes the python crypt
     debug_echo "Decrypting first pass..."
@@ -321,11 +397,13 @@ decrypty() {
     digested_passphrase=$(7z_digest_passphrase "$passphrase" "$salt")
     debug_echo "Digested Passphrase: $digested_passphrase"
 
+    fix_ramdisk_perms
+
     if [ $DEBUG -gt 0 ]; then
-        debug_return=$(7z x -p"$digested_passphrase" "$encrypted_volume_name" -o/tmp)
+        debug_return=$(7z x -p"$digested_passphrase" "$encrypted_volume_name" -o$ramdisk)
         debug_echo "$debug_return"
     else
-        7z x -p"$digested_passphrase" "$encrypted_volume_name" -o/tmp 1>/dev/null
+        7z x -p"$digested_passphrase" "$encrypted_volume_name" -o$ramdisk # 1>/dev/null
     fi
 
     # shred the 7z file
@@ -336,10 +414,14 @@ decrypty() {
 }
 
 # main
-
 if [ $DEBUG -gt 0 ]; then
     echo -e "\nWARNING: DEBUG MODE IS UNSAFE LOGGING TO $log_file\n"
     echo -e "Debug Log - $(date)\n" > "$log_file" # create/clear log file
+fi
+
+# check for ramdisk file and if not, make it
+if [ ! -f "$ramdisk_file" ]; then
+    ramdisk_gimme
 fi
 
 # operating modes

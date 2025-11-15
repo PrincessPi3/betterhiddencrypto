@@ -1,3 +1,4 @@
+add ramdisk function
 hammer offline card for leaked bytes
     also leaked partial bytes
     also do hexdump analysis of the file system to try and find any remnants of empty directories
