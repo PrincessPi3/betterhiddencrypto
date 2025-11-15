@@ -39,7 +39,7 @@ def derive_key_from_passphrase(passphrase: str, salt: bytes = None, iv: bytes = 
     # :param key_len: Length of the derived key in bytes (default 32 for AES-256).
     # :return: Derived key bytes, salt bytes, and iv bytes.
     if salt is None:
-        salt = get_random_bytes(16) # 128 bits
+        salt = get_random_bytes(32) # 256 bits
     if iv is None:
         iv = get_random_bytes(16) # 128 bits
     # dialed these to crackhead levels for funnn
