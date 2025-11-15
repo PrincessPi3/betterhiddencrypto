@@ -1,5 +1,5 @@
 #!/bin/bash
-# curl -S https://raw.githubusercontent.com/PrincessPi3/betterhiddencrypto/refs/heads/main/installer.sh | "$SHELL"
+# curl -s https://raw.githubusercontent.com/PrincessPi3/betterhiddencrypto/refs/heads/main/installer.sh | "$SHELL"
 
 echo -e "\nupdatin repos\n"
 sudo apt update
@@ -8,7 +8,7 @@ echo -e "\ndoin a full upgrade\n"
 sudo apt full-upgrade -y
 
 echo -e "\ninstallan needed tools\n"
-sudo apt install ripgrep openssl git python3 python3-pip 7zip openssl shred -y
+sudo apt install ripgrep openssl git python3 python3-pip 7zip openssl -y
 
 echo "cloning betterhiddencrypto to $HOME/betterhiddencrypto"
 git clone https://github.com/PrincessPi3/betterhiddencrypto.git $HOME/betterhiddencrypto 
