@@ -76,7 +76,7 @@ Need these packages installed:
 `git clone https://github.com/PrincessPi3/betterhiddencrypto.git`
 `cd hiddencrypto`
 `pip install -r requirements.txt`  
-testing `curl -S https://raw.githubusercontent.com/PrincessPi3/betterhiddencrypto/refs/heads/main/installer.sh | "$SHELL"`
+Autoinstaller (requires apt): `curl -S https://raw.githubusercontent.com/PrincessPi3/betterhiddencrypto/refs/heads/main/installer.sh | "$SHELL"`
 
 ## Usage
 1. Files to be encrypted are placed in [to_encrypt](./to_encrypt/README.md)
