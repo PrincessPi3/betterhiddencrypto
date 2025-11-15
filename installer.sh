@@ -6,18 +6,17 @@ echo -e "\ndoin a full upgrade\n"
 sudo apt full-upgrade -y
 
 echo -e "\ninstallan needed tools\n"
-sudo apt install ripgrep openssl git python3 python3-pip 7z openssl -y
-
-echo -e "\ncleaning up apt\n"
-sudo apt autoremove -y
+sudo apt install ripgrep openssl git python3 python3-pip 7zip openssl shred -y
 
 echo "cloning betterhiddencrypto to $HOME/betterhiddencrypto"
-cd $HOME
-git clone https://github.com/PrincessPi3/betterhiddencrypto.git
-cd ~/betterhiddencrypto 
+git clone https://github.com/PrincessPi3/betterhiddencrypto.git $HOME/betterhiddencrypto 
+cd $HOME/betterhiddencrypto 
 
 echo "installin python requirements"
 pip install -r ./requirements.txt
 
-echo "shuddan down in 2 mins lol"
-sudo shutdown -r +2
+echo -e "\ncleaning up apt\n"
+sudo apt autoremove -y
+
+echo "shuddan down in 1 min lol"
+sudo shutdown -r +1

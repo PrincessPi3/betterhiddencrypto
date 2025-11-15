@@ -45,6 +45,12 @@ environment_check() {
 		mkdir "$backup_dir"
 	fi
 
+    # make the ramdisk mount point if not exist
+    if [ ! -d "$ramdisk" ]; then
+        echo "$ramdisk doensnt exist, creating..."
+        sudo mkdir -p "$ramdisk"
+    fi
+
     # check for any dangling .7z files
     # todo: convert this to find?
     if [ -f *.7z ]; then
@@ -66,7 +72,9 @@ environment_check() {
 }
 
 fix_ramdisk_perms() {
+    debug_echo "fix_ramdisk_perms: chmoding $ramdisk to 777 recursively"
     sudo chmod -R 777 "$ramdisk"
+    debug_echo "fix_ramdisk_perms: chowning $ramdisk to $USER:USER recursively"
     sudo chown -R $USER:$USER "$ramdisk"
 }
 
@@ -125,12 +133,6 @@ shred_dir() {
 }
 
 ramdisk_toggle() {
-    # make the mount point if not exist
-    if [ ! -d "$ramdisk" ]; then
-        echo "$ramdisk doensnt exist, creating..."
-        sudo mkdir -p "$ramdisk"
-    fi
-
     # if the ramdisk is active (ramdisk_file exists)
     if [ -f "$ramdisk_file" ]; then
         echo "ramdisk is operating, umounting"
