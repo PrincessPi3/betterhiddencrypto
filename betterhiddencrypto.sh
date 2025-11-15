@@ -356,6 +356,9 @@ encrypty(){
     debug_echo "Storing salt for first pass..."
     append_7z_salt "$salt"
 
+    # umount ramdisk
+    ramdisk_toggle
+
     echo -e "\nSuccess: Encryption done! Encrypted to $encrypted_archive_name"
 }
 
