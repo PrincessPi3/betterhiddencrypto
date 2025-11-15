@@ -10,7 +10,7 @@ echo -e "\ndoin a full upgrade\n"
 sudo apt full-upgrade -y
 
 echo -e "\ninstallan needed tools\n"
-sudo apt install ripgrep openssl git python3 python3-pip python3-pycryptodome python3-argon2 7zip openssl -y
+sudo apt install ripgrep openssl git python3 python3-pip xxd 7zip openssl -y
 
 echo "cloning betterhiddencrypto to $HOME/betterhiddencrypto"
 git clone https://github.com/PrincessPi3/betterhiddencrypto.git $HOME/betterhiddencrypto 

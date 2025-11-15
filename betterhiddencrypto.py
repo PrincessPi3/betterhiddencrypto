@@ -92,7 +92,7 @@ def encrypt_file_gcm(input_file, output_file, passphrase):
 def decrypt_file_gcm(input_file, output_file, passphrase):
     # Read the salt, iv, tag, and ciphertext from the input file
     with open(input_file, 'rb') as f:
-        salt = f.read(16)
+        salt = f.read(32)
         iv = f.read(16)
         tag = f.read(16)
         ciphertext = f.read()
