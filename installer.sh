@@ -1,6 +1,8 @@
 #!/bin/bash
 # curl -s https://raw.githubusercontent.com/PrincessPi3/betterhiddencrypto/refs/heads/main/installer.sh | "$SHELL"
 
+set -e
+
 echo -e "\nupdatin repos\n"
 sudo apt update
 
