@@ -1,6 +1,6 @@
 #!/bin/bash
-# packages: python3, pip, 7z, ripgrep, coreutils, openssl
-# pip packages: pycryptodome, argon2-cffi
+# packages: 7z, coreutils, openssl, argon2, xxd
+#   cryptanalysis only: ripgrep
 
 # fail on error
 set -e # important to prevent data loss in event of a failure
@@ -28,7 +28,7 @@ debug_echo() {
     elif [ $DEBUG -eq 2 ]; then
         echo -e "$1" | tee -a "$log_file"
     else
-        : # do nothing
+        return # : # do nothing
     fi
 }
 

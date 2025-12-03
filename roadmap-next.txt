@@ -1,0 +1,54 @@
+refactor to eliminate python because python is a tumor and i think i can do it better in shell script anyhoof
+make generic argon2id digest function
+    output hex string
+    use cracklib-check to ensure password strength
+    do sanity checks
+    take argon2id settings as args / maybe have pre-defined presets it just picks between via arg $1
+make generic aes encryption and decryption functions
+    use openssl
+    feed it raw key hex string
+    feed it randomly generated iv hex string
+    append(?) the iv bytes/hex string I think
+make iv extracting and appending functions
+    work just like retrieve_7z_salt and append_7z_salt ig
+    chops off the bytes and xxd -p em to hash string
+    maybe actually store as hex string? maybe easier and more stable
+make and clean up iv/salt generation function
+    length via $1
+    iv, 7z salt, and aes salt all changed to globals
+    output hex string
+    ~openssl rand -hex $n
+support asshole yum usin linuxfuckers
+sanity checks
+    sanity checks on closing ramdisk
+    redundant tests of each step before proceeding?
+nuke/nuke reboot ask for confirm?
+run out from one single shell script
+    curl download installer oneliner frong (for ez and in case dey want it in their PATH)
+autoinstaller on missing environment shit
+    setup environment re ramdisk and file init
+documentation
+    update packages list
+    update usage
+    tidy up and spell out proper usage
+        key selection
+        key storage
+        key backups
+        tell em about
+            threat model
+                forensics
+                theif
+                    high end
+                    low end
+                malware
+                leaks
+                    password leaks from third party platforms
+                    key/passphrase/secrets leak from betterhiddencrypto
+                social engineering
+            
+optional offline haveibeenpwned testing?
+remove vestigial code and comments
+make generic functions for iv/salt generation, as well as iv/salt appending and retrieving
+    dis way dey can be resused yyayy
+    try to handle dem only as hex strings because fuckin nullbytes jfc god damned fuck
+maybe fuckin rename those dickfuck file/archive var names they confusing as shit
