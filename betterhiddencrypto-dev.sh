@@ -1,5 +1,5 @@
 #!/bin/bash
-# packages: 7z, coreutils, openssl, argon2, xxd
+# packages: 7z, openssl, argon2, xxd, cracklib-runtime
 #   cryptanalysis only: ripgrep
 
 # fail on error

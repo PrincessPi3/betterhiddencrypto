@@ -4,6 +4,15 @@ make generic argon2id digest function
     use cracklib-check to ensure password strength
     do sanity checks
     take argon2id settings as args / maybe have pre-defined presets it just picks between via arg $1
+add cracklib-check test to encryption function
+    echo -n "$passphrase" | cracklib-check
+        dat -n ver important to make sure echo does no trailing newline
+        really best audit rest of script for any failure of usin it frong
+        cracklib-check still returns retcode 0 when pass fails test, figure out how to handle this frong
+            figure it'll just ask for password twice,
+                pass through cracklib-check,
+                parse the output to check for OK$
+                if OK, proceed, else loop back to try again instead of failing
 make generic aes encryption and decryption functions
     use openssl
     feed it raw key hex string
@@ -45,7 +54,10 @@ documentation
                     password leaks from third party platforms
                     key/passphrase/secrets leak from betterhiddencrypto
                 social engineering
-            
+                    phishing
+            Discuss disk encryption
+                LUKS
+                    use in data destruction
 optional offline haveibeenpwned testing?
 remove vestigial code and comments
 make generic functions for iv/salt generation, as well as iv/salt appending and retrieving
