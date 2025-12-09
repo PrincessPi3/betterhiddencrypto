@@ -1,4 +1,5 @@
 refactor to eliminate python because python is a tumor and i think i can do it better in shell script anyhoof
+refactor to use `mktemp` instead of ramdisk
 make generic argon2id digest function
     output hex string
     use cracklib-check to ensure password strength
@@ -17,11 +18,10 @@ make generic aes encryption and decryption functions
     use openssl
     feed it raw key hex string
     feed it randomly generated iv hex string
-    append(?) the iv bytes/hex string I think
-make iv extracting and appending functions
+    append the iv hex string I think
+make hex data extracting and appending functions
     work just like retrieve_7z_salt and append_7z_salt ig
-    chops off the bytes and xxd -p em to hash string
-    maybe actually store as hex string? maybe easier and more stable
+    chops off the hex string and passes them to the functions wiht xxd -p as needed
 make and clean up iv/salt generation function
     length via $1
     iv, 7z salt, and aes salt all changed to globals
@@ -64,3 +64,95 @@ make generic functions for iv/salt generation, as well as iv/salt appending and 
     dis way dey can be resused yyayy
     try to handle dem only as hex strings because fuckin nullbytes jfc god damned fuck
 maybe fuckin rename those dickfuck file/archive var names they confusing as shit
+add ramdisk function
+hammer offline card for leaked bytes
+    also leaked partial bytes
+    also do hexdump analysis of the file system to try and find any remnants of empty directories
+        figure out some way to make them vanish (srm again?)
+hammer linux for leaks
+hammer WSL for leaks
+hammer memory for leaks
+hammer for directory information leaks
+full on forensic analysis
+work on antiforensics
+x rework readme
+    x witches idea to append/prepend memorized string to stored pass for dual custody typr thinggg
+    x actual instructions for usage
+    x add mention of 7z crypto
+readme
+    flesh out how the modes work
+    add nuke and antiforensics details
+    prettify it
+    add first pass digest/salt info
+    add laymen usage for a normie to use it durably
+        onedrive/cloud issue
+        backup/file history issue
+        beached pass issue
+        secure pass creation
+            kara's tip
+        key management
+        backing up encrypted data and keys durably
+            backups leak issue again
+x add password security 
+add breached passwords check
+X shred all volume crypto headers mode (shred --zero --remove --size=N (bytes))
+    X also check for and shred any dangling files
+    verify data durability in failure modes
+    verify that enough bytes are shredded to reliably nuke it
+    multithread nuke
+    highest priority task setting?
+    full system shred nuke mode?
+        would have to do it in a clever order based on sensitivity, speed, and keeping the system running long enough to complete
+x add smart optin to include dir or file on cli, or prombt for
+x removed make install mode fuckin work
+x prevent those errors when a .volume.bin or .volume.bin.bak is found
+add network killswitch?
+add configurable cron/backup operation kill/pause?
+y make the sha512sum digest for 7z go through iterations and maybe use a salt
+x    or find better alternative mayhaps
+test install instructions
+x add nuke options to help mode
+make nuke silent
+x verify salts are being used and stored and in digest
+sanity check shit and error check
+add known weaknesses to cryptanalysis readme
+    both salts are leaked in the archive
+        but their prsence still makes it far more robust against attack
+        discuss the sha512 digest thinggg
+            seek commentary
+        discuss the 7z being used and the security threats involved in that
+            seek commentary
+        encrypted disk redundancy
+            nuke mode for disk crypto?
+hidden volume/rubbehose type feature?
+duress pass?
+some type of dead man's switch to nuke?
+tamper evident/tamper nuke?
+memory shredding
+cronjob canary for leaked/unencrypted data
+store unencrypted files in memory only?
+refactor into platform independant pure python?
+    compiled python exe?
+    gui for nomies? (REEEEE)
+add more disclaimers about data loss and potentially bad security for fun
+add debug mode to shell script and have it pass that to teh python script
+    document
+fork nuke to background and exit terminal?
+    setsid <function> then clear/exit?
+manually shred filenames by renaing repeatedly with junk and then nullbytes?
+reevaluate workflow
+    add option to specify input dir and output file
+        smart select enc/dec with these
+prepend outer layer salt to make nuking first n bytes easier and more effective
+refactor to pure python
+hidden volumes
+randomness and correlation tests via
+    entropy on a loop analysis
+    dieharder
+        randomness tests
+        correlation tests
+maybe:
+    keyfiles
+    yubikey crypto handshake thing
+    dead man's switch (requires some kinda platform)
+    duress passphrase (nukes)
