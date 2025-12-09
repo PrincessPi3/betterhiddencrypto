@@ -5,34 +5,81 @@
 # fail on error
 set -e # important to prevent data loss in event of a failure
 
-# CHANGE da config here if ya like
-DEBUG=0 # 0 = no debug, 1 = console debug, 2 = log file+console debug
-ramdisk="/ramdisk"
-ramdisk_file="$ramdisk/.ramdisk"
-default_size=2G
-mode=1777
-# dir_to_encrypt="./to_encrypt"
+# commands needed
+required_cmds=(7z openssl argon2 xxd cracklib-check)
+
+# ramdisk config
+ramdisk="/ramdisk" # mountpoint for the ramdisk
+ramdisk_file="$ramdisk/.ramdisk" # file to make clear ramdisk is mounted/not mounted
+default_size=2G # size of the ramdisk to spin up
+mode=1700 # ramdisk perms minimal as possible
+
+# file and dir path
+# todo: get script path and make those paths absolute
 dir_to_encrypt="$ramdisk/to_encrypt" # only in memory fs for security
-encrypted_archive_name="./.volume.bin"
-encrypted_archive_name_tmp="$ramdisk/.volume.bin.tmp"
-encrypted_volume_name="$ramdisk/.encrypted_volume.7z"
-backup_dir="./.volume_old"
-salt_length=16 # in 8-bit bytes (16 bytes = 128 bits)
+encrypted_archive_name="./.volume.bin" # path to encrypted archive, safe to have on non-volatile memory
+encrypted_archive_name_tmp=$(mktemp) # temp .bin file # todo: shred after
+encrypted_volume_name="$ramdisk/.encrypted_volume.7z" # the 7z file path # todo: maybe use this use mktemp
+backup_dir="./.volume_old" # where to put archives .bins
+
+# shred settings
 max_length_dir_name_shred=64 # max length for renaming dirs during shred
 shred_iterations=3 # number of iterations to do shredding files and dir names
-log_file="./$(date +%s)_debug_log.txt" # log file for debug mode
 
-debug_echo() {
+# debug settings
+log_file="./$(date +%s)_debug_log.txt" # log file for debug mode
+DEBUG=0 # 0 = no debug, 1 = console debug, 2 = log file+console debug
+
+# crypto settings
+salt_length=32 # in 8-bit bytes (32 bytes = 256 bits)
+aes_iv_length=12 # bytes (12 bytes = 96 bits and is the usual length for aes gcm)
+
+# globals
+7z_salt='' # maek a globallll (hex string)
+7z_passphrase='' # holds dadigested passphrase to use as a passphrase for 7z encryptin
+aes_salt='' # globetrotter (hex string)
+aes_iv='' # for durr iv (hex string)
+aes_key='' # hex string of derived key for aes
+passphrase='' # passphrase globaele
+
+debug_echo () {
     if [ $DEBUG -eq 1 ]; then
         echo -e "$1"
     elif [ $DEBUG -eq 2 ]; then
         echo -e "$1" | tee -a "$log_file"
     else
-        return # : # do nothing
+        return 0 # do nothing
     fi
 }
 
-environment_check() {
+# usage:
+#   directly:
+#       check_requirements ls cd mv cp
+#   with variable:
+#       required_cmds=(ls cd mv cp)
+#       check_requirements "${required_cmds[@]}"
+check_requirements () {
+    local missing=() # make da empty arr
+
+    # Loop over all arguments (each should be a command name)
+    for cmd in "$@"; do # "$@" ish da aray of all arguments
+        if ! command -v "$cmd" >/dev/null 2>&1; then # fail silently if not found
+            missing+=("$cmd") # append missing to missing arr
+        fi
+    done
+
+    if (( ${#missing[@]} > 0 )); then # if missing arr not empty
+        echo "The following required commands are missing:"
+        for m in "${missing[@]}"; do # loop through missing
+            echo "  - $m" # eho the missing ones
+        end
+        exit 1 # explicitly fail
+    fi
+
+    return 0
+}
+
+environment_check () {
     # chezh em if both dir and archive dont exist
     if ! [ -d "$dir_to_encrypt" ] && ! [ -f "$encrypted_archive_name" ]; then
         debug_echo "$dir_to_encrypt and $encrypted_archive_name not found, Creating $dir_to_encrypt..."
@@ -59,28 +106,86 @@ environment_check() {
         exit 1 # explicitly fail
     fi
 
-    # used to use command -v instead of which and i dont remember why
-    if ! [ -f "$(which git)" ] && [ -f "$(which 7z)" ] && [ -f "$(which python)" ] && [ -f "$(which shred)" ] && [ -f "$(which sha512sum)" ] && [ -f "$(which sha256sum)" ]; then
-        echo "Needed Applications Not Found!"
-        echo "Depends on git, 7z, ugrep, python3, and sha512sum"
-        # todo: maybe make a clever installer function
-        # sudo apt update
-        # sudo apt install git 7z ugrep python3 python3-pip openssl coreutils -y
-        # pip install -r requirements.txt
-        # echo "Success: Installed"
-    fi
+    # check if needed packagees installed
+    check_requirements "${required_cmds[@]}"
 }
 
-fix_ramdisk_perms() {
-    debug_echo "fix_ramdisk_perms: chmoding $ramdisk to 777 recursively"
-    sudo chmod -R 777 "$ramdisk"
-    debug_echo "fix_ramdisk_perms: chowning $ramdisk to $USER:USER recursively"
+generate_salts_and_iv () {
+    # these outpoot as globalz :pidreaming:
+    7z_salt=$(openssl rand -hex $salt_length)
+    aes_salt=$(openssl rand -hex $salt_length)
+    aes_iv=$(openssl rand -hex $aes_iv_length)
+}
+
+# usage
+#   argon2id_drive_key (no params)
+argon2id_derive_keys () {
+    # AES settings    
+    aes_hash_len=32 # 255 bit key ofc
+    aes_time_cost=64 # numbrt iterations to use aka time cost -t default=3
+    aes_memory_cost=17 # memory cost in 2^n KiB. At 16, memory cost is 65536 KiB ~67mb. 17 is 131072 KiB ~134Mb default=12 (4096 KiB ~4Mb)
+
+    # 7z settings a bit different for fun :3
+    7z_hash_len=64 # bytes length of output hash aka -l makin it 512 bits here basically for da lulz default=32 
+    7z_time_cost=62
+    7z_memory_cost=16 # ~67MB
+
+    # sHARED SETTING
+    paraellism=4 # number of cores to allow used to compute the key, making it run faster without a direct security tradeoff. default=1
+
+    # echo
+    #   -n: do not add trailing newline to echoed message
+    # argon2
+    #   -id: use argon2id algo not the default argon2i
+    #   -r: output raw hex bytes string
+    #   -l: output hash length in bytes, default=32
+    #   -t: time cost: int number of iterations, default=3
+    #   -m: memory cost in 2^n KiB, default 12
+    #   -p: paralellism: number of cores to allow to use to process the hash, making it faster without a direct security tradeoff, default=1
+    # xxd
+    #   -r: make raw bytes out of hex string
+    #   -p: use plain flat hex string like
+
+    # AES key
+    aes_key=$(echo -n "$passphrase" | argon2 "$aes_salt" -id -r -l $aes_hash_len -t $aes_time_cost -m $aes_memory_cost -p $paraellism)
+
+    # 7z passphrase digest
+    7z_passphrase=$(echo -n "$passphrase" | argon2 "$7z_salt" -id -r -l $7z_hash_len -t $7z_time_cost -m $7z_memory_cost -p $paraellism)
+}
+
+aes_gcm_256_encrypt () {
+    tag_bin=$(mktemp) # use a tmp file
+
+    openssl aes-256-gcm -e \
+        -K "$aes_key" \
+        -iv "$aes_iv" \
+        -tag "$tag_bin" \
+        -in "$encrypted_volume_name" \
+        -out "$encrypted_archive_name_tmp"
+    
+    tag_hex=$(xxd -p "$tag_bin")
+    
+    # append hex to tmp file
+    append_data "$tag_hex" "$encrypted_archive_name_tmp"
+
+    # clean up tag binary
+    shred --force --remove --zero --iterations=3 "$tag_bin"    
+}
+
+fix_ramdisk_perms () {
+    debug_echo "fix_ramdisk_perms: chmoding $ramdisk dirs to 700 recursively"
+    sudo find "$ramdisk" -type d -exec chmod 700 "{}" \;
+    
+    debug_echo "fix_ramdisk_perms: chmoding $ramdisk files to 700 recursively"
+    sudo find "$ramdisk" -type f -exec chmod 600 "{}" \; 
+
+    debug_echo "fix_ramdisk_perms: chowning $ramdisk to $USER:$USER recursively"
     sudo chown -R $USER:$USER "$ramdisk"
 }
 
 # switchan to shred and find because secure-delete is old af
 # also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
-shred_dir() {
+shred_dir () {
     fix_ramdisk_perms
 
     if [ -d "$1" ]; then # if its a dir
@@ -132,13 +237,12 @@ shred_dir() {
     fi
 }
 
-ramdisk_toggle() {
+ramdisk_toggle () {
     # if the ramdisk is active (ramdisk_file exists)
     if [ -f "$ramdisk_file" ]; then
         echo "ramdisk is operating, umounting"
         sudo umount "$ramdisk"
         exit 0
-
     fi
 
     # handle ramdisk size and default
@@ -163,12 +267,11 @@ ramdisk_toggle() {
         # create the ramdisk_file
         echo 1 > "$ramdisk_file" 
     fi
-
 }
 
 # note: rework and add nuke alias to rcfile something llike
 ##   alias EMERGENCY_NUKE='setsid bash /path/to/betterhiddencrypto.sh ns; clear; exit'
-EMERGENCY_NUKE() {
+EMERGENCY_NUKE () {
     # NUKE EVERYFUCKINGTHING IN THIS DIR
     # CRASH IT WITH NO SURVIVors
 
@@ -204,74 +307,55 @@ EMERGENCY_NUKE() {
     fi
 }
 
+# appends the salt to the file to be removed when retreived with retrieve_data
 # usage:
-#   my_salt="$(new_7z_salt)"
-new_7z_salt() {
-    # nice solid cryptographically secure rng asssss
-    openssl rand $salt_length # echo the salt bytes
-}
-
-# appends the salt to the file to be removed when retreived with retrieve_7z_salt
-# usage:
-#   append_7z_salt "$salt"
-append_7z_salt() {
+#   append_data "$data"
+append_data () {
     fix_ramdisk_perms
-    local_salt="$1"
+    local_data="$1"
     # append the salt to the encrypted archive
-    printf "$local_salt" >> "$encrypted_archive_name"
+    printf "$local_data" >> "$encrypted_archive_name"
 }
 
-# todo sanity checks and silent it
-# prepend_7z_salt() {
-#     fix_ramdisk_perms
-#     # echo "$salt$(cat $encrypted_archive_name)" > "$encrypted_archive_name"
-#     echo -n "$1$(cat $encrypted_archive_name)" > "$encrypted_archive_name"
-# }
-
-# todo sanity checks and silent it
-# retrieve_prepend_7z_salt() {
-#     fix_ramdisk_perms
-# 
-#     # get the stored salt
-#     head -c $salt_length "$encrypted_archive_name"
-#    
-#     # remove the salt from the archive
-#     ## redirect stdout to /dev/null and allow stderr (progress) to show
-#     # dd if="$encrypted_archive_name" of="$encrypted_archive_name_tmp" bs=1 skip=$salt_length status=progress 1>/dev/null
-# 
-#     truncate -s $salt_length "$encrypted_archive_name"
-# 
-#     # do da thingggg reset working bin to the the tmp file var
-#     encrypted_archive_name="$encrypted_archive_name_tmp"
-# }
-
-# 7z salt is appended to the file when made with append_7z_salt and removed when retreived
+# data appended to the file with append_data and removed when retreived
+# echos the data retreived
 # usage:
-#   retrieve_7z_salt (no args)
-retrieve_7z_salt() {
-    # get the stored salt
-    tail -c $salt_length "$encrypted_archive_name"
-    # remove the salt from the archive
-    truncate -s -$salt_length "$encrypted_archive_name"
-}
+#   retrieve_appended_data <int length in bytes> <string file path>
+#   retrieve_appended_data 32 /path/to/file.bin
+#   my_iv=$(retrieve_appended_data 32 /path/to/file.bin)
+retrieve_appended_data () {
+    # maek friendly naMES
+    local data_length=$1 # bytes
+    local file_path="$2" # absolute path
 
-# todo: sanity checks
-# usage: digest_passphrase <string passphrase> <bytes raw salt>
-# like my_digest=$(digest_passphrase "my_passphrase")
-# 7z_digest_passphrase() {
-#     iter="$1"
-#     salt="$2"
-#     for i in {1..125}; do # 125 rotations set here, seems slow :flushed:
-#         iter=$(echo "$iter$salt" | sha512sum | awk '{print $1}') # add dat salt for each rot
-#     done
-# 
-#     # meant for usage like my_var=$(7z_digest_passphrase "my_passphrase")
-#     echo "$iter"
-# }
+    # sanity checks
+    ## if first arg emptyy
+    if [ -z "$data_length" ]; then
+        echo "retrieve_appended_data FAIL: no first argument given to function"
+        exit 1 # explicitly fail with error
+    fi
+    ## if arg 2 is empty
+    if [ -z "$file_path" ]; then
+        echo "retrieve_appended_data FAIL: no second arg given to function!"
+        exit 1 # fail out
+    fi
+    ## if its present but not a file
+    if [ ! -f "$file_path" ]; then
+        echo "retrieve_appended_data FAIL: '$file_path' is not a file!"
+        exit 1 # explicitly ffail with error
+    fi
+
+    # get the data and echo it
+    # todo: make sure no newlines or anything end up in hereee
+    tail -c $data_length "$file_path"
+
+    # remove the data from the archive
+    truncate -s -$data_length "$file_path"
+}
 
 # usage:
 #   7z_digest_passphrase 'my passphrase' new_7z_salt/retrieve_7z_salt
-7z_digest_passphrase() {
+7z_digest_passphrase () {
     local_passphrase="$1" # passphrase from args
     local_salt="$2" # salt from args
     hash_len=64 # bytes length of output hash aka -l default=32
@@ -294,18 +378,19 @@ retrieve_7z_salt() {
     echo -n "$local_passphrase" | argon2 "$local_salt" -id -r -l $hash_len -t $time_cost -m $memory_cost -p $paraellism | xxd -r -p
 }
 
-encrypty() {
+encrypty () {
     if [ $DEBUG -gt 0 ]; then
         debug_echo "ENCRYPTING Starting..."
     else
         debug_echo "ENCRYPTION STARTING: vars: dir_to_encrypt: $dir_to_encrypt, encrypted_archive_name: $encrypted_archive_name, encrypted_volume_name: $encrypted_volume_name, backup_dir: $backup_dir, salt_length: $salt_length, max_length_dir_name_shred: $max_length_dir_name_shred, shred_iterations: $shred_iterations"
     fi
 
-    # check da passphrases for match
+    # get a passphrases
     echo -e "\nEnter Passphrase: "
     read -s passphrase1
     echo -e "Repeat Passphrase:"
     read -s passphrase2
+    # check if passphrases match
     if [ "$passphrase1" != "$passphrase2" ]; then
         echo -e "\nPassphrases do not match! Exiting!\n"
         exit 1 # otherwise explicitly fail
@@ -315,27 +400,30 @@ encrypty() {
     fi
 
     # generate new salt
-    debug_echo "Generating new salt for first pass..."
-    salt="$(new_7z_salt)"
+    debug_echo "Generating new salts and iv ..."
+    generate_salts_and_iv
 
-    debug_echo "Salt: $(echo $salt | xxd -p)" # print salt in hex
+    debug_echo "Deriving keys..."
+    argon2id_derive_keys
+
+    # debug_echo "Salt: $(echo $salt | xxd -p)" # print salt in hex
 
     debug_echo "Compressing Directory and performing first pass encryption..."
     # digest the passphrase for use as a statistically indepentant 7zip passphrase
-    debug_echo "Digesting passphrase phase 1..."
-    digested_passphrase=$(7z_digest_passphrase "$passphrase" "$salt")
-    debug_echo "Digested Passphrase: $digested_passphrase"
+    # debug_echo "Digesting passphrase phase 1..."
+    # digested_passphrase=$(7z_digest_passphrase "$passphrase" "$salt")
+    # debug_echo "Digested Passphrase: $digested_passphrase"
 
     fix_ramdisk_perms
 
     if [ $DEBUG -gt 0 ]; then
-        debug_return=$(7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt")
+        debug_return=$(7z a -p"$7z_passphrase" "$encrypted_volume_name" "$dir_to_encrypt")
         debug_echo "$debug_return"
     else
         # 7z <mode> -p"<passphrase>" <new volume path (.7z)> <directory path to encrypt>
         #   a: create archive
         #   -p"my passphrase" passphrase for encryptiom (note no whitespace betwen -p and the string)
-        7z a -p"$digested_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" # 1>/dev/null # silent unless error
+        7z a -p"$7z_passphrase" "$encrypted_volume_name" "$dir_to_encrypt" # 1>/dev/null # silent unless error
     fi
 
     fix_ramdisk_perms
@@ -348,7 +436,7 @@ encrypty() {
         debug_echo "$debug_return"
     else
         # 7z t: test existing 7z encrypted archive
-        7z t -p"$digested_passphrase" "$encrypted_volume_name" # 1>/dev/null # do this silently unless fail
+        7z t -p"$7z_passphrase" "$encrypted_volume_name" # 1>/dev/null # do this silently unless fail
     fi
 
     fix_ramdisk_perms
@@ -412,7 +500,7 @@ encrypty() {
     echo -e "\nSuccess: Encryption done! Encrypted to $encrypted_archive_name"
 }
 
-decrypty() {
+decrypty () {
     if [ $DEBUG -gt 0 ]; then
         debug_echo "DECRYPTION STARTING: vars: dir_to_encrypt: $dir_to_encrypt, encrypted_archive_name: $encrypted_archive_name, encrypted_volume_name: $encrypted_volume_name, backup_dir: $backup_dir, salt_length: $salt_length, max_length_dir_name_shred: $max_length_dir_name_shred, shred_iterations: $shred_iterations"
     else
