@@ -1,5 +1,129 @@
 refactor to eliminate python because python is a tumor and i think i can do it better in shell script anyhoof
 refactor to use `mktemp` instead of ramdisk
+
+# globals
+$bin_encrypted_archive_file_safe "$archive_name.bin"
+$bin_archive_file_tmp=$(mktemp --dry-run)
+$7z_archive_file_tmp=$(mktempv --dry-run)
+# gloBALS (empty at start)
+appended_aes_gcm_tag_hex_str=""
+bin_archive_file_tmp=""
+appended_aes_iv_hex_str=""
+bin_archive_file_tmp=""
+appended_aes_salt_hex_str=""
+bin_archive_file_tmp=""
+aes_key_derived_hex_str=""
+
+File format
+$bin_encrypted_archive_file_safe
+    outer_volume_encrypted_bin
+        $7z_archive_file_tmp:
+            inner_volume_encrypted_7z
+                secret files
+                ...
+                more secret files
+            /inner_volume_encrypted_7z
+            $appended_7z_salt
+        /$7z_archive_file_tmp
+    /outer_volume_encrypted_bin
+    $appended_aes_gcm_tag_hex_str
+    $appended_aes_iv_hex_str
+    $appended_aes_salt_hex_str
+/$bin_encrypted_archive_file_safe
+
+program flow
+decrypt:
+    copy $bin_encrypted_archive_file_safe to $bin_archive_file_tmp
+    derive $passphrase_checked_str to $7z_passphrase_str
+        retreive and chop $appended_aes_salt_hex_str from $bin_archive_file_tmp
+        derive $7z_passphrase_str from $passphrase_checked_str with $appended_aes_salt_hex_str via argon2id 
+    retreive and chop $appended_aes_iv_hex_str from $bin_archive_file_tmp
+    retreive and chop $appended_aes_gcm_tag_hex_str from $bin_archive_file_tmp
+    attempt aes-256-gcm decrypt $bin_archive_file_tmp wtith digested $aes_key, $appended_aes_iv_hex_str, and $appended_aes_gcm_tag_hex_str
+    fail:
+        shred $bin_archive_file_tmp
+        throw error message
+        exit with error code
+    success:
+        inner volume (7z):
+            $to_encrypt_dir_tmp=$(mktmp --directory)
+            digest 7z passphrase
+                reterive and chop $appended_7z_salt from $bin_archive_file_tmp
+                derive $7z_passphrase_str using $passphrase_checked_str with $appended_7z_salt with argon2id
+            7z decrypt/decompress $bin_archive_file_tmp to $to_encrypt_dir_tmp
+                success:
+                        shred file $bin_archive_file_tmp
+                        shred file $7z_archive_file_tmp
+                        print $to_encrypt_dir_tmp
+                        exit 0
+                fail:
+                    shred $to_encrypt_dir_tmp
+                    shred $bin_archive_tmp
+                    shred $bin_archive_file_tmp
+                    throw error message
+                    exit with error code
+encrypt:
+    generate new salts and iv
+    digest passphrase
+        digest $7z_passphrase_str using $passphrase_checked_str with $appended_7z_salt with argon2id
+    7z compress and encrypt $to_encrypt_dir_tmp with $7z_passphrase_str to $7z_archive_file_tmp
+    7z verify $7z_archive_file_tmp archive with 7z a and $7z_passphrase_str
+    append $appended_7z_salt to $7z_archive_file_tmp
+    aes-256-gcm encrypt:
+        encrypt $7z_archive_file_tmp with $aes_key_derived_hex_str and $appended_aes_iv_hex_str to $bin_archive_file_tmp
+    append $appended_aes_gcm_tag_hex_str to $bin_archive_file_tmp
+    append $appended_aes_iv_hex_str to $bin_archive_file_tmp
+    append $appended_aes_salt_hex_str tto $bin_archive_file_tmp
+    sanity check all appended:
+        ripgrep find $appended_aes_gcm_tag_hex_str
+        ripgrep find $appended_aes_iv_hex_str to $bin_archive_file_tmp
+        ripgrep find $appended_aes_salt_hex_str tto $bin_archive_file_tmp
+        fail:
+            revert
+                check reverteted $bin_archive_file_tmp matches $bin_archive_safe with checksum
+                    fail:
+                        notify
+                        give sha512 checksums of remaining files
+                        give locations of remaining files
+                        exit with error code
+                success:
+                    notify
+                    print temp file paths
+                    exit with error code
+        success:
+            copy $bin_archive_file_tmp to $bin_encrypted_archive_file_safe
+            shred $bin_archive_file_tmp
+            shred $7z_archive_file_tmp
+            shred $to_encrypt_dir_tmp
+            exit 0
+# new volume
+## if $1 starts with N/n case insensitive
+if [ "$mode" =~ ^[nN]{1} ]; then
+    # get absolute path of $2
+    bin_encrypted_archive_file_safe="$PWD/$(basename $2)"
+
+    # make sure the arg is there
+    if [ -z "$2" ]; then
+        echo "FAIL no second argument"
+        exit 1
+    fi
+
+    # ccheck if file exists
+    if [ -f "$bin_encrypted_archive_file_safe" ]; then
+        bin_encrypted_archive_file_safe="$bin_encrypted_archive_file_safe"
+        decrypt
+    fi
+
+    # make the temp dir
+    to_encrypt_dir_tmp=$(mktmp --directory --dry-run)
+
+    # actually create the dir
+    mkdir "$to_encrypt_dir_tmp"
+
+    echo "$to_encrypt_dir_tmp"
+    encrypt
+fi
+    
 make generic argon2id digest function
     output hex string
     use cracklib-check to ensure password strength
@@ -124,6 +248,7 @@ add known weaknesses to cryptanalysis readme
             seek commentary
         encrypted disk redundancy
             nuke mode for disk crypto?
+multiple volume support
 hidden volume/rubbehose type feature?
 duress pass?
 some type of dead man's switch to nuke?

@@ -6,7 +6,8 @@
 set -e # important to prevent data loss in event of a failure
 
 # commands needed
-required_cmds=(7z openssl argon2 xxd cracklib-check)
+required_cmds=(7z openssl argon2 xxd cracklib-check rg) 
+packages_debian=(7z openssl argon2 xxd cracklib-runtime ripgrep)
 
 # ramdisk config
 ramdisk="/ramdisk" # mountpoint for the ramdisk
@@ -52,32 +53,6 @@ debug_echo () {
     fi
 }
 
-# usage:
-#   directly:
-#       check_requirements ls cd mv cp
-#   with variable:
-#       required_cmds=(ls cd mv cp)
-#       check_requirements "${required_cmds[@]}"
-check_requirements () {
-    local missing=() # make da empty arr
-
-    # Loop over all arguments (each should be a command name)
-    for cmd in "$@"; do # "$@" ish da aray of all arguments
-        if ! command -v "$cmd" >/dev/null 2>&1; then # fail silently if not found
-            missing+=("$cmd") # append missing to missing arr
-        fi
-    done
-
-    if (( ${#missing[@]} > 0 )); then # if missing arr not empty
-        echo "The following required commands are missing:"
-        for m in "${missing[@]}"; do # loop through missing
-            echo "  - $m" # eho the missing ones
-        end
-        exit 1 # explicitly fail
-    fi
-
-    return 0
-}
 
 environment_check () {
     # chezh em if both dir and archive dont exist
@@ -121,15 +96,13 @@ generate_salts_and_iv () {
 #   argon2id_drive_key (no params)
 argon2id_derive_keys () {
     # AES settings    
-    aes_hash_len=32 # 255 bit key ofc
+    aes_hash_len=32 # 256 bit key ofc
     aes_time_cost=64 # numbrt iterations to use aka time cost -t default=3
     aes_memory_cost=17 # memory cost in 2^n KiB. At 16, memory cost is 65536 KiB ~67mb. 17 is 131072 KiB ~134Mb default=12 (4096 KiB ~4Mb)
-
     # 7z settings a bit different for fun :3
     7z_hash_len=64 # bytes length of output hash aka -l makin it 512 bits here basically for da lulz default=32 
     7z_time_cost=62
     7z_memory_cost=16 # ~67MB
-
     # sHARED SETTING
     paraellism=4 # number of cores to allow used to compute the key, making it run faster without a direct security tradeoff. default=1
 
@@ -142,9 +115,6 @@ argon2id_derive_keys () {
     #   -t: time cost: int number of iterations, default=3
     #   -m: memory cost in 2^n KiB, default 12
     #   -p: paralellism: number of cores to allow to use to process the hash, making it faster without a direct security tradeoff, default=1
-    # xxd
-    #   -r: make raw bytes out of hex string
-    #   -p: use plain flat hex string like
 
     # AES key
     aes_key=$(echo -n "$passphrase" | argon2 "$aes_salt" -id -r -l $aes_hash_len -t $aes_time_cost -m $aes_memory_cost -p $paraellism)
@@ -181,60 +151,6 @@ fix_ramdisk_perms () {
 
     debug_echo "fix_ramdisk_perms: chowning $ramdisk to $USER:$USER recursively"
     sudo chown -R $USER:$USER "$ramdisk"
-}
-
-# switchan to shred and find because secure-delete is old af
-# also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
-shred_dir () {
-    fix_ramdisk_perms
-
-    if [ -d "$1" ]; then # if its a dir
-        debug_echo "Shredding and deleting directory: $1 with $shred_iterations iterations"
-
-        # next phase is to shred all files in the dir
-        find "$1" -path ".git" -prune -o -type f -exec shred --zero --remove --force --iterations=$shred_iterations {} \;
-
-        # attempt to rename dirs to random names first
-        # first phase is to rename all dirs to random names to break the structure
-        # for i in $(seq 1 $shred_iterations); do
-        #     # get random starting dir name for this iteration
-        #     random_start_name=$(openssl rand -hex $max_length_dir_name_shred)
-        # 
-        #     # make the random starting dir
-        #     if [ -d "$1" ]; then
-        #         echo "Renaming start dir ($1) to random start dir ($random_start_name) for iteration $i"
-        #         mv "$1" "$random_start_name"
-        #     elif [ -d "$old_random_start_name" ]; then
-        #         echo "Renaming old random start dir ($old_random_start_name) to new random start dir ($random_start_name) for iteration $i"
-        #         mv "$old_random_start_name" "$random_start_name"
-        #     else
-        #         echo "FAIL: Directory not found: $1 EXITING"
-        #         exit 1 # explicitly fail
-        #     fi
-        # 
-        #     # rename all dirs to random names
-        #     echo "find operation iteration $i"
-        #     find "$random_start_name" -mindepth 1 -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \;
-        # 
-        #     old_random_start_name=$random_start_name # store for next iteration
-        # done
-        
-        # then rename dirs to nullbytes to make sure no names remain
-        # TODO: fix this to work
-        # find "$1" -mindepth 1 -type d -exec mv {} "$(dd if=/dev/zero bs=1 count=$max_length_dir_name_shred status=none)" \;
-
-        # find "$1" -mindepth 2 -type d -exec mv {} $(openssl rand -hex $max_length_dir_name_shred) \; # remove empty dirs
-
-        # then nuke the all empty dirs
-        rm -rf "$1"
-    elif [ -f "$1" ]; then # if its a file        
-        # three iterations plus a zeroing and deletion
-        debug_echo "Shredding and deleting file: $1 with $shred_iterations iterations"
-        shred --zero --remove --force --iterations=$shred_iterations "$1" # 1>/dev/null 2>/dev/null
-    else # fail
-        echo "FAIL: Directory or file not found: $1 EXITING"
-        exit 1 # explicitly fail
-    fi
 }
 
 ramdisk_toggle () {
