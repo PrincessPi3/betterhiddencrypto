@@ -1,5 +1,17 @@
-refactor to eliminate python because python is a tumor and i think i can do it better in shell script anyhoof
-refactor to use `mktemp` instead of ramdisk
+x refactor to eliminate python because python is a tumor and i think i can do it better in shell script anyhoof
+x refactor to use `mktemp` instead of ramdisk
+randomized kdf values at both layers
+    aes 256 gcm:
+        aes_iv_length=$(random_val 12 32) # two digits
+        aes_argon2id_salt_length=$(random_val 16 64) # two digits
+        aes_argon2id_time_cost=$(random_val 016 128) # three digits
+        aes_argon2id_memory_cost=$(random_val 16 18) # two digits
+        aes_argon2id_paralellization=$(random_val 1 4) # one digit
+    7zip crypto:
+        7z_salt_length=$(random_val 16 64) # two digits
+        7z_argon2id_time_cost=$(random_val 016 128) # three digits
+        7z_argon2id_memory_cost=$(random_val 16 18) # two digits
+        7z_argon2id_paralellization=$(random_val 1 4) # one digit
 
 # globals
 $bin_encrypted_archive_file_safe "$archive_name.bin"

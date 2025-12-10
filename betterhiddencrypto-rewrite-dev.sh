@@ -1,9 +1,9 @@
 #!/bin/bash
 # fail on error
-set -e # important to prevent data loss in event of a failure
+# set -e # important to prevent data loss in event of a failure
 
 # debug settings
-DEBUG=0 # 0 = no debug, 1 = console debug, 2 = log file+console debug
+DEBUG=1 # 0 = no debug, 1 = console debug, 2 = log file+console debug
 debug_log_file="$PWD/$(date +%s)_debug_log.txt" # log file for debug mode
 
 # crypto settings
@@ -14,11 +14,11 @@ salt_shared_length_int=32 # in 8-bit bytes (32 bytes = 256 bits)
 aes_time_cost_int=64 # numbrt iterations to use aka time cost -t default=3
 aes_memory_cost_int=17 # memory cost in 2^n KiB. At 16, memory cost is 65536 KiB ~67mb. 17 is 131072 KiB ~134Mb default=12 (4096 KiB ~4Mb)
 aes_iv_length_int=12 # bytes (12 bytes = 96 bits and is the usual length for aes gcm)
-appended_aes_gcm_tag_length=16 # todo: figure dis out
+appended_aes_gcm_tag_length=16 # only tag length supported by openssl aes gcm
 ## 7z and 7z layer KDFsettings a bit different for fun :3
-7z_hash_len_int=64 # bytes length of output hash aka -l makin it 512 bits here basically for da lulz default=32 
-7z_time_cost_int=62
-7z_memory_cost_int=16 # ~67MB
+sevenzip_hash_len_int=64 # bytes length of output hash aka -l makin it 512 bits here basically for da lulz default=32 
+sevenzip_time_cost_int=62
+sevenzip_memory_cost_int=16 # ~67MB
 
 # commands needed
 required_cmds_arr=(7z openssl argon2 xxd cracklib-check rg shred mktemp sha512sum)
@@ -41,7 +41,7 @@ provided_encrypted_bin_safe_file_path_str="$2"
 ## mktemp --dry-run just generates the filenames in /tmp to be created later as needd
 ## globals so dey can be tested for and shredded as need be
 bin_archive_file_tmp="$(mktemp --dry-run)"
-7z_archive_file_tmp="$(mktemp --dry-run)"
+sevenzip_archive_file_tmp="$(mktemp --dry-run)"
 bin_archive_file_two_tmp="$(mktemp --dry-run)"
 aes_gcm_tag_bin_tmp="$(mktemp --dry-run)"
 to_encrypt_dir_tmp="$(mktemp --dry-run)" # --directory not passed as not needed here because creatin later
@@ -53,16 +53,16 @@ appended_aes_iv_hex_str=''
 appended_aes_salt_hex_str=''
 aes_key_derived_hex_str=''
 ## 7z/argon2id globals
-appended_7z_salt_hex_str=''
-7z_derived_passphrase_str=''
+appended_sevenzip_salt_hex_str=''
+sevenzip_derived_passphrase_str=''
 ## shared globals
 passphrase_checked_str=''
 
 # var, temp file, and function name arrays for later cleanup
 ## arr of global vars
-vars_at_play_arr=(appended_7z_salt_hex_str 7z_derived_passphrase_str passphrase_checked_str appended_aes_gcm_tag_hex_str appended_aes_iv_hex_str appended_aes_salt_hex_str aes_key_derived_hex_str shred_iterations_int max_length_dir_name_shred_int packages_debian required_cmds_arr 7z_hash_len_int 7z_time_cost_int 7z_memory_cost_int aes_time_cost_int aes_memory_cost_int aes_iv_length_int appended_aes_gcm_tag_length DEBUG debug_log_file paraellism_int salt_shared_length_int)
+vars_at_play_arr=(appended_sevenzip_salt_hex_str sevenzip_derived_passphrase_str passphrase_checked_str appended_aes_gcm_tag_hex_str appended_aes_iv_hex_str appended_aes_salt_hex_str aes_key_derived_hex_str shred_iterations_int max_length_dir_name_shred_int packages_debian required_cmds_arr sevenzip_hash_len_int sevenzip_time_cost_int sevenzip_memory_cost_int aes_time_cost_int aes_memory_cost_int aes_iv_length_int appended_aes_gcm_tag_length DEBUG debug_log_file paraellism_int salt_shared_length_int)
 ## arr temp files used
-temp_files_at_play_arr=(bin_archive_file_tmp bin_archive_file_two_tmp 7z_archive_file_tmp aes_gcm_tag_bin_tmp to_encrypt_dir_tmp)
+temp_files_at_play_arr=(bin_archive_file_tmp bin_archive_file_two_tmp sevenzip_archive_file_tmp aes_gcm_tag_bin_tmp to_encrypt_dir_tmp)
 ## todo: arr of functtions to reset and unset
 # functions_at_play_arr=()
 
@@ -101,8 +101,9 @@ check_requirements () {
     if (( ${#missing[@]} > 0 )); then # if missing arr not empty
         echo "The following required commands are missing:"
         for m in "${missing[@]}"; do # loop through missing
-            echo "  - $m" # eho the missing ones
-        end
+            echo "  - $m" # echo the missing ones 
+        done
+
         exit 1 # explicitly fail
     fi
 
@@ -177,9 +178,9 @@ cleanup () {
 #   append_data_to_file <string hex> <string file path>
 append_data_to_file () {
     local hex_str="$1"
-    local file_path="$PWD/$(basename $2)"
+    local file_path="$2"
 
-    if [ -z "$hex_str" ]; then
+    if [ -z "$1" ]; then
         echo "append_data_to_file FAIL: arguement 1 (hex string) not providedd!"
         exit 1
     fi
@@ -234,7 +235,7 @@ retreive_chop_appended_data_from_file () {
 #   generate_salts_and_iv
 generate_salts_and_iv () {
     # these outpoot as globalz :pidreaming:
-    appended_7z_salt_hex_str=$(openssl rand -hex $salt_shared_length_int)
+    appended_sevenzip_salt_hex_str=$(openssl rand -hex $salt_shared_length_int)
     appended_aes_salt_hex_str=$(openssl rand -hex $salt_shared_length_int)
     appended_aes_iv_hex_str=$(openssl rand -hex $aes_iv_length_int)
 }
@@ -300,38 +301,38 @@ aes_derive_keys_passphrase_from_file () {
 
 # derive new 7z passphrase
 # usage:
-#   7z_derive_keys_new
-7z_derive_keys_new () {
-    7z_derived_passphrase_str=$( \
+#   sevenzip_derive_keys_new
+sevenzip_derive_keys_new () {
+    sevenzip_derived_passphrase_str=$( \
         echo -n "$passphrase_checked_str" | \
             argon2 \
-                "$(echo -n \"$appended_7z_salt_hex_str\" | xxd -r -p)" \
+                "$(echo -n \"$appended_sevenzip_salt_hex_str\" | xxd -r -p)" \
                 -id \
                 -r \
-                -l $7z_hash_len_int \
-                -t $7z_time_cost_int \
-                -m $7z_memory_cost_int \
+                -l $sevenzip_hash_len_int \
+                -t $sevenzip_time_cost_int \
+                -m $sevenzip_memory_cost_int \
                 -p $paraellism_int
     )
 }
 
 # derive 7z passphrase from existing file
 # usage:
-#   7z_derive_keys_passphrase_from_file
-7z_derive_keys_passphrase_from_file () {
+#   sevenzip_derive_keys_passphrase_from_file
+sevenzip_derive_keys_passphrase_from_file () {
     # retreive 7z salt from file
-    appended_7z_salt_hex_str=$(retreive_chop_appended_data_from_file $salt_shared_length_int "$provided_encrypted_bin_file_path_str")
+    appended_sevenzip_salt_hex_str=$(retreive_chop_appended_data_from_file $salt_shared_length_int "$provided_encrypted_bin_file_path_str")
 
     # derive the passphrase
-    7z_derived_passphrase_str=$(\
+    sevenzip_derived_passphrase_str=$(\
         echo -n "$passphrase_checked_str" | \
             argon2 \
-                "$(echo -n \"$appended_7z_salt_hex_str\" | xxd -r -p)" \
+                "$(echo -n \"$appended_sevenzip_salt_hex_str\" | xxd -r -p)" \
                 -id \
                 -r \
-                -l $7z_hash_len_int \
-                -t $7z_time_cost_int \
-                -m $7z_memory_cost_int \
+                -l $sevenzip_hash_len_int \
+                -t $sevenzip_time_cost_int \
+                -m $sevenzip_memory_cost_int \
                 -p $paraellism_int
     )
 }
@@ -368,7 +369,7 @@ betterhiddencrypto_decrypt () {
     if [ $DEBUG -gt 0 ]; then
         echo "DECRYPTING Starting..."
     else
-        debug_echo "DECRYPTION STARTING: vars: provided_encrypted_bin_file_path_str: $provided_encrypted_bin_file_path_str to_encrypt_dir_tmp: $to_encrypt_dir_tmp, 7z_archive_file_tmp: $7z_archive_file_tmp, bin_archive_file_tmp: $bin_archive_file_tmp, salt_shared_length_int: $salt_shared_length_int, max_length_dir_name_shred_int: $max_length_dir_name_shred_int, shred_iterations_int: $shred_iterations_int"
+        debug_echo "DECRYPTION STARTING: vars: provided_encrypted_bin_file_path_str: $provided_encrypted_bin_file_path_str to_encrypt_dir_tmp: $to_encrypt_dir_tmp, sevenzip_archive_file_tmp: $sevenzip_archive_file_tmp, bin_archive_file_tmp: $bin_archive_file_tmp, salt_shared_length_int: $salt_shared_length_int, max_length_dir_name_shred_int: $max_length_dir_name_shred_int, shred_iterations_int: $shred_iterations_int"
     fi
 
     # make temp copy of safe file
@@ -382,22 +383,23 @@ betterhiddencrypto_decrypt () {
         aes-256-gcm -d \
         -K "$aes_key_derived_hex_str" \
         -iv "$appended_aes_iv_hex_str" \
-        -tag "$aes_gcm_tag_bin_tmp" \
         -in "$bin_archive_file_tmp" \
-        -out "$7z_archive_file_tmp"
+        -out "$sevenzip_archive_file_tmp"
+        # -tag "$aes_gcm_tag_bin_tmp" \
+
 
     # inner layer (7z)
     ## derive keyss and shit
-    7z_derive_keys_passphrase_from_file
+    sevenzip_derive_keys_passphrase_from_file
     ## make the temp dir to decrypt to
     mkdir "$to_encrypt_dir_tmp"
     ## 7z x: decrypt 7z encrypted file and extract
     if [ $DEBUG -gt 0 ]; then
         # -bb3 for max verbosity
-        debug_return=$(7z x -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp" -o"$to_encrypt_dir_tmp" -bb3)
+        debug_return=$(7z x -p"$sevenzip_derived_passphrase_str" "$sevenzip_archive_file_tmp" -o"$to_encrypt_dir_tmp" -bb3)
         debug_echo "$debug_return"
     else
-        7z x -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp" -o"$to_encrypt_dir_tmp" # 1>/dev/null
+        sevenzip x -p"$sevenzip_derived_passphrase_str" "$sevenzip_archive_file_tmp" -o"$to_encrypt_dir_tmp" # 1>/dev/null
     fi
 
     # show the dir
@@ -411,7 +413,7 @@ betterhiddencrypto_encrypt () {
     if [ $DEBUG -gt 0 ]; then
         echo "ENCRYPTION Starting..."
     else
-        debug_echo "ENCRYPTION STARTING: vars: provided_encrypted_bin_file_path_str: $provided_encrypted_bin_file_path_str to_encrypt_dir_tmp: $to_encrypt_dir_tmp, 7z_archive_file_tmp: $7z_archive_file_tmp, bin_archive_file_tmp: $bin_archive_file_tmp, salt_shared_length_int: $salt_shared_length_int, max_length_dir_name_shred_int: $max_length_dir_name_shred_int, shred_iterations_int: $shred_iterations_int"
+        debug_echo "ENCRYPTION STARTING: vars: provided_encrypted_bin_file_path_str: $provided_encrypted_bin_file_path_str to_encrypt_dir_tmp: $to_encrypt_dir_tmp, sevenzip_archive_file_tmp: $sevenzip_archive_file_tmp, bin_archive_file_tmp: $bin_archive_file_tmp, salt_shared_length_int: $salt_shared_length_int, max_length_dir_name_shred_int: $max_length_dir_name_shred_int, shred_iterations_int: $shred_iterations_int"
     fi
 
     # get a passphrases
@@ -433,42 +435,50 @@ betterhiddencrypto_encrypt () {
 
     # inner layer (7z)
     ## derive passphrase for 7z layer
-    7z_derive_keys_new
+    sevenzip_derive_keys_new
     ## create 7z archive
     if [ $DEBUG -gt 0 ]; then
         # -bb3 for max verbosity
-        debug_return=$(7z a -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp" "$to_encrypt_dir_tmp" -bb3)
+        debug_return=$(7z a -p"$sevenzip_derived_passphrase_str" "$sevenzip_archive_file_tmp" "$to_encrypt_dir_tmp" -bb3)
         debug_echo "$debug_return"
     else
         # 7z <mode> -p"<passphrase>" <new volume path (.7z)> <directory path to encrypt>
         #   a: create archive
         #   -p"my passphrase" passphrase for encryptiom (note no whitespace betwen -p and the string)
-        7z a -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp" "$to_encrypt_dir_tmp" # 1>/dev/null # silent unless error
+        7z a -p"$sevenzip_derived_passphrase_str" "$sevenzip_archive_file_tmp" "$to_encrypt_dir_tmp" # 1>/dev/null # silent unless error
     fi
     ## test 7z archive
     if [ $DEBUG -gt 0 ]; then
         # 7z t: test existing 7z encrypted archive
         ## -bb3 -slt max verbosity plus technical info
-        debug_return=$(7z t -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp -bb3 -slt")
+        debug_return=$(7z t -p"$sevenzip_derived_passphrase_str" "$sevenzip_archive_file_tmp -bb3 -slt")
         debug_echo "$debug_return"
     else
         # 7z t: test existing 7z encrypted archive
-        7z t -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp" # 1>/dev/null # do this silently unless fail
+        7z t -p"$sevenzip_derived_passphrase_str" "$sevenzip_archive_file_tmp" # 1>/dev/null # do this silently unless fail
     fi
     ## add the salt to the 7z temp file
-    append_data_to_file "$appended_7z_salt_hex_str" "$7z_archive_file_tmp"
+    append_data_to_file "$appended_sevenzip_salt_hex_str" "$sevenzip_archive_file_tmp"
 
     # outer layer (aes gcm 256)
     ## derive keys
     aes_derive_keys_new
     ## run encryption
-    openssl \
-        aes-256-gcm -e \
+
+    debug_echo "bin_archive_file_tmp: $bin_archive_file_tmp"
+    debug_echo "bin_archive_file_two_tmp: $bin_archive_file_two_tmp"
+    debug_echo "aes_key_derived_hex_str: $aes_key_derived_hex_str"
+    debug_echo "appended_aes_iv_hex_str: $appended_aes_iv_hex_str"
+    debug_echo "aes_gcm_tag_bin_tmp: $aes_gcm_tag_bin_tmp"
+
+    openssl enc -aes-256-gcm -e \
+        -in "$bin_archive_file_tmp" \
+        -out "$bin_archive_file_two_tmp" \
         -K "$aes_key_derived_hex_str" \
         -iv "$appended_aes_iv_hex_str" \
-        -tag "$(echo -n $appended_aes_gcm_tag_hex_str | xxd -p -r)" \
-        -in "$bin_archive_file_tmp" \
-        -out "$bin_archive_file_two_tmp"
+        -nosalt #\
+        # -tag "$aes_gcm_tag_bin_tmp"
+
     ## append data in order 
     append_data_to_file "$appended_aes_gcm_tag_hex_str" "$provided_encrypted_bin_file_path_str"
     append_data_to_file "$appended_aes_iv_hex_str" "$provided_encrypted_bin_file_path_str"
@@ -485,6 +495,9 @@ if [[ "$provided_mode_str" == "NUKE" ]]; then
     exit 0
 fi
 
+# starup housekeeping
+environment_check
+
 # decrypt mode
 ## if $1 starts with d/D case insensitive
 if [[ "$provided_mode_str" =~ ^[dD] ]]; then
@@ -500,7 +513,7 @@ elif [[ "$provided_mode_str" =~ ^[nN] ]]; then
     # provided_encrypted_bin_safe_file_path_str="$PWD/$(basename $2)"
 
     # make sure the second arg is there
-    if [ -z "$provided_encrypted_bin_file_path_str" ]; then
+    if [ -z "$provided_encrypted_bin_safe_file_path_str" ]; then
         echo "FAIL no second argument"
         exit 1
     fi
@@ -511,9 +524,7 @@ elif [[ "$provided_mode_str" =~ ^[nN] ]]; then
         betterhiddencrypto_decrypt
     fi
 
-    # make the temp dir path
-    to_encrypt_dir_tmp=$(mktmp --directory --dry-run)
-    ## actually create the temp dir
+    # actually create the temp dir
     mkdir "$to_encrypt_dir_tmp"
 
     echo "$to_encrypt_dir_tmp"
@@ -521,4 +532,5 @@ elif [[ "$provided_mode_str" =~ ^[nN] ]]; then
 else
     # DEFAULT mode aand bin
     # todo: search $PWD for .bins error if none
+    echo "defaulttt"
 fi
