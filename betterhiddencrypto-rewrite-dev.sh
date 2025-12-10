@@ -177,7 +177,7 @@ betterhiddencrypto_encrypt () {
 }
 
 environment_check () {
-    # todo: test for packages
+    check_requirements "${required_cmds[@]}"
     # todo: test mktmp perms
     # todo: test $PWD perms
     # todo: test volume perms
