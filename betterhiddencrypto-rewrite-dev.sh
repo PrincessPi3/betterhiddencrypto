@@ -40,7 +40,9 @@ provided_encrypted_bin_file_path_str="$2"
 ## mktemp --dry-run just generates the filenames in /tmp to be created later as needd
 ## globals so dey can be tested for and shredded as need be
 bin_archive_file_tmp="$(mktemp --dry-run)"
+bin_archive_file_tmp_two="$(mktemp --dry-run)"
 7z_archive_file_tmp="$(mktemp --dry-run)"
+aes_gcm_tag_bin_tmp="$(mktemp --dry-run)"
 to_encrypt_dir_tmp="$(mktemp --dry-run)" # --directory not passed as not needed here
 
 # gloBALS (empty at start)
@@ -56,17 +58,48 @@ appended_7z_salt_hex_str=""
 passphrase_checked_str=""
 
 # todo:
-# betterhiddencrypto_decrypt ()
 # NUKE_REKT ()
 # get_real_user ()
 # fix_file_perms (chmod: dirs to 700 files to 600 chown to $real_user:$real_user)
-# 7z_derive_keys_new 
-# 7z_derive_keys_from_file
+
+betterhiddencrypto_decrypt () {
+    if [ $DEBUG -gt 0 ]; then
+        echo "DECRYPTING Starting..."
+    else
+        debug_echo "DECRYPTION STARTING: vars: provided_encrypted_bin_file_path_str: $provided_encrypted_bin_file_path_str to_encrypt_dir_tmp: $to_encrypt_dir_tmp, 7z_archive_file_tmp: $7z_archive_file_tmp, bin_archive_file_tmp: $bin_archive_file_tmp, salt_shared_length_int: $salt_shared_length_int, max_length_dir_name_shred_int: $max_length_dir_name_shred_int, shred_iterations_int: $shred_iterations_int"
+    fi
+
+    # OUTEr layer (aes gcm 256)
+    ## derive keys
+    aes_derive_keys_passphrase_from_file
+    ## run decryption
+    openssl \
+        aes-256-gcm -d \
+        -K "$aes_key_derived_hex_str" \
+        -iv "$appended_aes_iv_hex_str" \
+        -tag "$aes_gcm_tag_bin_tmp" \
+        -in "$bin_archive_file_tmp" \
+        -out "$bin_archive_file_tmp_two"
+
+    # inner layer (7z)
+    ## derive keyss and shit
+    7z_derive_keys_passphrase_from_file
+    ## make the temp dir to decrypt to
+    mkdir "$to_encrypt_dir_tmp"
+    ## 7z x: decrypt 7z encrypted file and extract
+    if [ $DEBUG -gt 0 ]; then
+        # -bb3 for max verbosity
+        debug_return=$(7z x -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp" -o"$to_encrypt_dir_tmp" -bb3)
+        debug_echo "$debug_return"
+    else
+        7z x -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp" -o"$to_encrypt_dir_tmp" # 1>/dev/null
+    fi
+
+    # show the dir
+    echo "Decrypted Directory: $to_encrypt_dir_tmp"
+}
 
 betterhiddencrypto_encrypt () {
-    mkdir "$to_encrypt_dir_tmp"
-
-
     if [ $DEBUG -gt 0 ]; then
         echo "ENCRYPTING Starting..."
     else
@@ -78,7 +111,7 @@ betterhiddencrypto_encrypt () {
     read -s passphrase1
     echo -e "Repeat Passphrase:"
     read -s passphrase2
-    # check if passphrases match
+    ## check if passphrases match
     if [ "$passphrase1" != "$passphrase2" ]; then
         echo -e "\nPassphrases do not match! Exiting!\n"
         exit 1 # otherwise explicitly fail
@@ -87,7 +120,51 @@ betterhiddencrypto_encrypt () {
         passphrase_checked_str="$passphrase1"
     fi
 
+    # inner layer (7z)
+    7z_derive_keys_new
+    ## create 7z archive
+    if [ $DEBUG -gt 0 ]; then
+        # -bb3 for max verbosity
+        debug_return=$(7z a -bb3 -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp" "$to_encrypt_dir_tmp")
+        debug_echo "$debug_return"
+    else
+        # 7z <mode> -p"<passphrase>" <new volume path (.7z)> <directory path to encrypt>
+        #   a: create archive
+        #   -p"my passphrase" passphrase for encryptiom (note no whitespace betwen -p and the string)
+        7z a -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp" "$to_encrypt_dir_tmp" # 1>/dev/null # silent unless error
+    fi
+    ## test 7z archive
+    if [ $DEBUG -gt 0 ]; then
+        # 7z t: test existing 7z encrypted archive
+        ## -bb3 -slt max verbosity plus technical info
+        debug_return=$(7z t -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp -bb3 -slt")
+        debug_echo "$debug_return"
+    else
+        # 7z t: test existing 7z encrypted archive
+        7z t -p"$7z_derived_passphrase_str" "$7z_archive_file_tmp" # 1>/dev/null # do this silently unless fail
+    fi
+    ## add the salt to the 7z temp file
+    append_data_to_file "$appended_7z_salt_hex_str" "$7z_archive_file_tmp"
+
+    # outer layer (aes gcm 256)
+    ## derive keys
     aes_derive_keys_new
+    ## run encryption
+    openssl \
+        aes-256-gcm -e \
+        -K "$aes_key_derived_hex_str" \
+        -iv "$appended_aes_iv_hex_str" \
+        -tag "$(echo -n $appended_aes_gcm_tag_hex_str | xxd -p -r)" \
+        -in "$bin_archive_file_tmp" \
+        -out "$bin_archive_file_tmp_two"
+    ## append data in order 
+    append_data_to_file "$appended_aes_gcm_tag_hex_str" "$provided_encrypted_bin_file_path_str"
+    append_data_to_file "$appended_aes_iv_hex_str" "$provided_encrypted_bin_file_path_str"
+    append_data_to_file "$appended_aes_salt_hex_str" "$provided_encrypted_bin_file_path_str"
+    ## todo: test it workan
+    cp "$bin_archive_file_tmp_two" "$provided_encrypted_bin_file_path_str"
+    ## cleanup
+    cleanup
 }
 
 environment_check () {
@@ -103,7 +180,6 @@ cleanup () {
     # todo: make global arr of all vars that may be in play and sensitive
     # todo: loop throuh vars arr, fill them with random data, maybe zero, then unset
 }
-
 
 # switchan to shred and find because secure-delete is old af
 # also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
@@ -134,13 +210,24 @@ shred_dir () {
 }
 
 aes_derive_keys_passphrase_from_file () {
-    # get the salt and iv
+    ## get the salt and iv
     appended_aes_salt_hex_str=$(retreive_chop_appended_data_from_file $salt_shared_length_int "$provided_encrypted_bin_file_path_str")
     appended_aes_iv_hex_str=$(retreive_chop_appended_data_from_file $aes_iv_length_int "$provided_encrypted_bin_file_path_str")
     appended_aes_gcm_tag_hex_str=$(retreive_chop_appended_data_from_file $appended_aes_gcm_tag_length "$provided_encrypted_bin_file_path_str")
-
-    # generate the 256 bit key as hex string save aS global
+    ## make the tag tmp file
+    echo -n "$appended_aes_gcm_tag_hex_str" | xxd -p -r > "$aes_gcm_tag_bin_tmp"
+    ## generate the 256 bit key as hex string save aS global
     aes_key_derived_hex_str=$(echo -n "$passphrase_checked_str" | argon2 "$(echo -n \"$appended_aes_salt_hex_str\" | xxd -d -p)" -id -r -l 32 -t $aes_time_cost_int -m $aes_memory_cost_int -p $paraellism_int)
+}
+
+7z_derive_keys_new () {
+    generate_salts_and_iv
+    7z_derived_passphrase_str=$(echo -n "$passphrase_checked_str" | argon2 "$(echo -n \"$appended_7z_salt_hex_str\" | xxd -r -p)" -id -r -l $7z_hash_len_int -t $7z_time_cost_int -m $7z_memory_cost_int -p $paraellism_int)
+}
+
+7z_derive_keys_passphrase_from_file () {
+    appended_7z_salt_hex_str=$(retreive_chop_appended_data_from_file $salt_shared_length_int "$provided_encrypted_bin_file_path_str")
+    7z_derived_passphrase_str=$(echo -n "$passphrase_checked_str" | argon2 "$(echo -n \"$appended_7z_salt_hex_str\" | xxd -r -p)" -id -r -l $7z_hash_len_int -t $7z_time_cost_int -m $7z_memory_cost_int -p $paraellism_int)
 }
 
 generate_salts_and_iv () {
@@ -216,7 +303,7 @@ append_data_to_file () {
         exit 1
     fi
 
-    printf "$hex_str" >> "$file_path"
+    echo -n "$hex_str" >> "$file_path"
 }
 
 # retreive_chop_appended_data_from_file <int num of hex bytes in hex string> <str file path>
