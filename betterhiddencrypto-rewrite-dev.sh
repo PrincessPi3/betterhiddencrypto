@@ -54,13 +54,22 @@ aes_key_derived_hex_str=""
 ## 7z/argon2id globals
 appended_7z_salt_hex_str=""
 7z_derived_passphrase_str=""
-# shared globals
+## shared globals
 passphrase_checked_str=""
+
+# var and temp file arrays
+## arr of global vars
+vars_at_play_arr=(appended_7z_salt_hex_str 7z_derived_passphrase_str passphrase_checked_str appended_aes_gcm_tag_hex_str appended_aes_iv_hex_str appended_aes_salt_hex_str aes_key_derived_hex_str shred_iterations_int max_length_dir_name_shred_int packages_debian required_cmds_arr 7z_hash_len_int 7z_time_cost_int 7z_memory_cost_int aes_time_cost_int aes_memory_cost_int aes_iv_length_int appended_aes_gcm_tag_length DEBUG debug_log_file paraellism_int salt_shared_length_int)
+## arr temp files used
+temp_files_at_play_arr=(bin_archive_file_tmp bin_archive_file_tmp_two 7z_archive_file_tmp aes_gcm_tag_bin_tmp to_encrypt_dir_tmp)
 
 # todo:
 # NUKE_REKT ()
-# get_real_user ()
 # fix_file_perms (chmod: dirs to 700 files to 600 chown to $real_user:$real_user)
+
+fix_file_perms () {
+
+}
 
 betterhiddencrypto_decrypt () {
     if [ $DEBUG -gt 0 ]; then
@@ -175,10 +184,22 @@ environment_check () {
 }
 
 cleanup () {
-    # todo: make global arr of all temp files and dirs
-    # todo: loop through temps arr, shread all the dirs and files
-    # todo: make global arr of all vars that may be in play and sensitive
-    # todo: loop throuh vars arr, fill them with random data, maybe zero, then unset
+    for tmp_file in "${temp_files_at_play_arr[@]}"; do
+        debug_echo "cleanup: cleaning up $tmp_file"
+        if [ -f "$tmp_file" -o -d "$tmp_file" ]; then
+            shred_dir "$tmp_file"
+        else
+            continue
+        fi
+    done
+
+    for tmp_var in "${vars_at_play_arr[@]}"; do
+        debug_echo "cleanup: cleaning up $tmp_var"
+        # reset var to random hex
+        exec "${tmp_var}='$(openssl rand -hex $max_length_dir_name_shred_int)'"
+        # unset var
+        exec "unset $tmp_var"
+    done
 }
 
 # switchan to shred and find because secure-delete is old af
@@ -222,7 +243,17 @@ aes_derive_keys_passphrase_from_file () {
 
 7z_derive_keys_new () {
     generate_salts_and_iv
-    7z_derived_passphrase_str=$(echo -n "$passphrase_checked_str" | argon2 "$(echo -n \"$appended_7z_salt_hex_str\" | xxd -r -p)" -id -r -l $7z_hash_len_int -t $7z_time_cost_int -m $7z_memory_cost_int -p $paraellism_int)
+    7z_derived_passphrase_str=$( \
+        echo -n "$passphrase_checked_str" | \
+            argon2 \
+                "$(echo -n \"$appended_7z_salt_hex_str\" | xxd -r -p)" \
+                -id \
+                -r \
+                -l $7z_hash_len_int \
+                -t $7z_time_cost_int \
+                -m $7z_memory_cost_int \
+                -p $paraellism_int
+        )
 }
 
 7z_derive_keys_passphrase_from_file () {
