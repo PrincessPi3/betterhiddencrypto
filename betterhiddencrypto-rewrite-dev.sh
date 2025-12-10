@@ -44,28 +44,33 @@ bin_archive_file_tmp="$(mktemp --dry-run)"
 bin_archive_file_tmp_two="$(mktemp --dry-run)"
 7z_archive_file_tmp="$(mktemp --dry-run)"
 aes_gcm_tag_bin_tmp="$(mktemp --dry-run)"
-to_encrypt_dir_tmp="$(mktemp --dry-run)" # --directory not passed as not needed here
+to_encrypt_dir_tmp="$(mktemp --dry-run)" # --directory not passed as not needed here because creatin later
 
 # gloBALS (empty at start)
 ## aes/argon2id globals
-appended_aes_gcm_tag_hex_str=""
-appended_aes_iv_hex_str=""
-appended_aes_salt_hex_str=""
-aes_key_derived_hex_str=""
+appended_aes_gcm_tag_hex_str=''
+appended_aes_iv_hex_str=''
+appended_aes_salt_hex_str=''
+aes_key_derived_hex_str=''
 ## 7z/argon2id globals
-appended_7z_salt_hex_str=""
-7z_derived_passphrase_str=""
+appended_7z_salt_hex_str=''
+7z_derived_passphrase_str=''
 ## shared globals
-passphrase_checked_str=""
+passphrase_checked_str=''
 
-# var and temp file arrays
+# var, temp file, and function name arrays for later cleanup
 ## arr of global vars
 vars_at_play_arr=(appended_7z_salt_hex_str 7z_derived_passphrase_str passphrase_checked_str appended_aes_gcm_tag_hex_str appended_aes_iv_hex_str appended_aes_salt_hex_str aes_key_derived_hex_str shred_iterations_int max_length_dir_name_shred_int packages_debian required_cmds_arr 7z_hash_len_int 7z_time_cost_int 7z_memory_cost_int aes_time_cost_int aes_memory_cost_int aes_iv_length_int appended_aes_gcm_tag_length DEBUG debug_log_file paraellism_int salt_shared_length_int)
 ## arr temp files used
 temp_files_at_play_arr=(bin_archive_file_tmp bin_archive_file_tmp_two 7z_archive_file_tmp aes_gcm_tag_bin_tmp to_encrypt_dir_tmp)
+## todo: arr of functtions to reset and unset
+# functions_at_play_arr=()
 
-# todo:
-# NUKE_REKT ()
+NUKE_REKT () {
+    # todo: search certain defined dirs for .bhc files and shred dey headers
+    cleanup
+    # todo: force immediate shutdown
+}
 
 fix_file_perms () {
     # todo: add provided bin to tmp files arr, loop through, chmod and chown
@@ -110,7 +115,7 @@ betterhiddencrypto_decrypt () {
 
 betterhiddencrypto_encrypt () {
     if [ $DEBUG -gt 0 ]; then
-        echo "ENCRYPTING Starting..."
+        echo "ENCRYPTION Starting..."
     else
         debug_echo "ENCRYPTION STARTING: vars: provided_encrypted_bin_file_path_str: $provided_encrypted_bin_file_path_str to_encrypt_dir_tmp: $to_encrypt_dir_tmp, 7z_archive_file_tmp: $7z_archive_file_tmp, bin_archive_file_tmp: $bin_archive_file_tmp, salt_shared_length_int: $salt_shared_length_int, max_length_dir_name_shred_int: $max_length_dir_name_shred_int, shred_iterations_int: $shred_iterations_int"
     fi
@@ -129,7 +134,11 @@ betterhiddencrypto_encrypt () {
         passphrase_checked_str="$passphrase1"
     fi
 
+    # generate mew salts and ivs
+    generate_salts_and_iv
+
     # inner layer (7z)
+    ## derive passphrase for 7z layer
     7z_derive_keys_new
     ## create 7z archive
     if [ $DEBUG -gt 0 ]; then
@@ -187,7 +196,7 @@ cleanup () {
     for tmp_file in "${temp_files_at_play_arr[@]}"; do
         debug_echo "cleanup: cleaning up $tmp_file"
         if [ -f "$tmp_file" -o -d "$tmp_file" ]; then
-            shred_dir "$tmp_file"
+            shred_node "$tmp_file"
         else
             continue
         fi
@@ -204,7 +213,7 @@ cleanup () {
 
 # switchan to shred and find because secure-delete is old af
 # also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
-shred_dir () {
+shred_node () {
     if [ -d "$1" ]; then # if its a dir
         debug_echo "Shredding and deleting directory: $1 with $shred_iterations iterations"
 
@@ -213,6 +222,7 @@ shred_dir () {
 
         # randomly rename all da dirrrrs and fuiels
         # todo: depth first order to prevent errorzzz
+        # todo: file and dir paths proper
         for ((i=0; i<$shred_iterations_int; i++)); do
             find "$1" -type d -exec mv "{}" "$(openssl rand -hex $max_length_dir_name_shred_int)" \;
             find "$1" -type f -exec mv "{}" "$(openssl rand -hex $max_length_dir_name_shred_int)" \;
@@ -231,18 +241,44 @@ shred_dir () {
 }
 
 aes_derive_keys_passphrase_from_file () {
-    ## get the salt and iv
-    appended_aes_salt_hex_str=$(retreive_chop_appended_data_from_file $salt_shared_length_int "$provided_encrypted_bin_file_path_str")
-    appended_aes_iv_hex_str=$(retreive_chop_appended_data_from_file $aes_iv_length_int "$provided_encrypted_bin_file_path_str")
-    appended_aes_gcm_tag_hex_str=$(retreive_chop_appended_data_from_file $appended_aes_gcm_tag_length "$provided_encrypted_bin_file_path_str")
-    ## make the tag tmp file
-    echo -n "$appended_aes_gcm_tag_hex_str" | xxd -p -r > "$aes_gcm_tag_bin_tmp"
+    # GET the info from the file and chop off
+    ## aes salt hex str
+    appended_aes_salt_hex_str=$(\
+        retreive_chop_appended_data_from_file \
+            $salt_shared_length_int \
+            "$provided_encrypted_bin_file_path_str"
+    )
+    ## aes iv hex str
+    appended_aes_iv_hex_str=$(\
+        retreive_chop_appended_data_from_file \
+            $aes_iv_length_int \
+            "$provided_encrypted_bin_file_path_str"
+    )
+    ## aes gcm tag hex str
+    appended_aes_gcm_tag_hex_str=$(\
+        retreive_chop_appended_data_from_file \
+            $appended_aes_gcm_tag_length \
+            "$provided_encrypted_bin_file_path_str"
+    )
+
+    # make the tag tmp file
+    echo -n "$appended_aes_gcm_tag_hex_str" | \
+        xxd -p -r > "$aes_gcm_tag_bin_tmp"
     ## generate the 256 bit key as hex string save aS global
-    aes_key_derived_hex_str=$(echo -n "$passphrase_checked_str" | argon2 "$(echo -n \"$appended_aes_salt_hex_str\" | xxd -d -p)" -id -r -l 32 -t $aes_time_cost_int -m $aes_memory_cost_int -p $paraellism_int)
+    aes_key_derived_hex_str=$(\
+        echo -n "$passphrase_checked_str" | \
+            argon2 \
+                "$(echo -n \"$appended_aes_salt_hex_str\" | xxd -d -p)" \
+                -id \
+                -r \
+                -l 32 \
+                -t $aes_time_cost_int \
+                -m $aes_memory_cost_int \
+                -p $paraellism_int
+    )
 }
 
 7z_derive_keys_new () {
-    generate_salts_and_iv
     7z_derived_passphrase_str=$( \
         echo -n "$passphrase_checked_str" | \
             argon2 \
@@ -253,12 +289,25 @@ aes_derive_keys_passphrase_from_file () {
                 -t $7z_time_cost_int \
                 -m $7z_memory_cost_int \
                 -p $paraellism_int
-        )
+    )
 }
 
 7z_derive_keys_passphrase_from_file () {
+    # retreive 7z salt from file
     appended_7z_salt_hex_str=$(retreive_chop_appended_data_from_file $salt_shared_length_int "$provided_encrypted_bin_file_path_str")
-    7z_derived_passphrase_str=$(echo -n "$passphrase_checked_str" | argon2 "$(echo -n \"$appended_7z_salt_hex_str\" | xxd -r -p)" -id -r -l $7z_hash_len_int -t $7z_time_cost_int -m $7z_memory_cost_int -p $paraellism_int)
+
+    # derive the passphrase
+    7z_derived_passphrase_str=$(\
+        echo -n "$passphrase_checked_str" | \
+            argon2 \
+                "$(echo -n \"$appended_7z_salt_hex_str\" | xxd -r -p)" \
+                -id \
+                -r \
+                -l $7z_hash_len_int \
+                -t $7z_time_cost_int \
+                -m $7z_memory_cost_int \
+                -p $paraellism_int
+    )
 }
 
 generate_salts_and_iv () {
@@ -270,8 +319,17 @@ generate_salts_and_iv () {
 
 aes_derive_keys_new () {
     # generater new random data and derive passphrase, savin shit as globals
-    generate_salts_and_iv
-    aes_key_derived_hex_str=$(echo -n "$passphrase_checked_str" | argon2 "$(echo -n \"$appended_aes_salt_hex_str\" | xxd -d -p)" -id -r -l 32 -t $aes_time_cost_int -m $aes_memory_cost_int -p $paraellism_int)
+    aes_key_derived_hex_str=$(\
+        echo -n "$passphrase_checked_str" | \
+            argon2 \
+                "$(echo -n \"$appended_aes_salt_hex_str\" | xxd -d -p)" \
+                -id \
+                -r \
+                -l 32 \
+                -t $aes_time_cost_int \
+                -m $aes_memory_cost_int \
+                -p $paraellism_int
+    )
 }
 
 # handle debuggan modes
@@ -339,6 +397,7 @@ append_data_to_file () {
 
 # retreive_chop_appended_data_from_file <int num of hex bytes in hex string> <str file path>
 retreive_chop_appended_data_from_file () {
+    # todo: sanity check $1 and $2
     local data_length=$1 # bytes
     local file_path="$PWD/$(basename $2)" # absolute path
     local hex_data_length=$((2 * $data_length)) # double the bytes for hex str
