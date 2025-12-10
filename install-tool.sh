@@ -25,7 +25,13 @@ echo "configurant"
 ./Configure \
     --prefix=/usr/local/openssl-3.6 \
     --openssldir=/usr/local/openssl-3.6/ssl \
-    --libdir=/usr/local/openssl-3.6/lib64/ \
+    --libdir=/usr/local/openssl-3.6/lib64 \
+    enable-ec_nistp_64_gcc_128 \
+    enable-ktls \
+    enable-rc5 \
+    enable-camellia \
+    enable-chacha \
+    enable-poly1305 \
     no-shared \
     no-fips
 

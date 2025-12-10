@@ -21,3 +21,5 @@ alias test_sanity="echo -e '\nChecking $to_encrypt_dir directory...\n'; tree $to
 
 # update path cryptanalysis scripts
 export PATH="$PATH:$PWD/cryptanalysis"
+
+## vars fur testin
