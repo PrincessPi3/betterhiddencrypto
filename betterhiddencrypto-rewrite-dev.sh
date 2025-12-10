@@ -57,12 +57,53 @@ passphrase_checked_str=""
 
 # todo:
 # betterhiddencrypto_decrypt ()
-# betterhiddencrypto_encrypt ()
-# cleanup () # test for and shred temp files, shred and unset vars
 # NUKE_REKT ()
-# environment_check ()
 # get_real_user ()
 # fix_file_perms (chmod: dirs to 700 files to 600 chown to $real_user:$real_user)
+# 7z_derive_keys_new 
+# 7z_derive_keys_from_file
+
+betterhiddencrypto_encrypt () {
+    mkdir "$to_encrypt_dir_tmp"
+
+
+    if [ $DEBUG -gt 0 ]; then
+        echo "ENCRYPTING Starting..."
+    else
+        debug_echo "ENCRYPTION STARTING: vars: provided_encrypted_bin_file_path_str: $provided_encrypted_bin_file_path_str to_encrypt_dir_tmp: $to_encrypt_dir_tmp, 7z_archive_file_tmp: $7z_archive_file_tmp, bin_archive_file_tmp: $bin_archive_file_tmp, salt_shared_length_int: $salt_shared_length_int, max_length_dir_name_shred_int: $max_length_dir_name_shred_int, shred_iterations_int: $shred_iterations_int"
+    fi
+
+    # get a passphrases
+    echo -e "\nEnter Passphrase: "
+    read -s passphrase1
+    echo -e "Repeat Passphrase:"
+    read -s passphrase2
+    # check if passphrases match
+    if [ "$passphrase1" != "$passphrase2" ]; then
+        echo -e "\nPassphrases do not match! Exiting!\n"
+        exit 1 # otherwise explicitly fail
+    else
+        debug_echo "Passwords match!"
+        passphrase_checked_str="$passphrase1"
+    fi
+
+    aes_derive_keys_new
+}
+
+environment_check () {
+    # todo: test for packages
+    # todo: test mktmp perms
+    # todo: test $PWD perms
+    # todo: test volume perms
+}
+
+cleanup () {
+    # todo: make global arr of all temp files and dirs
+    # todo: loop through temps arr, shread all the dirs and files
+    # todo: make global arr of all vars that may be in play and sensitive
+    # todo: loop throuh vars arr, fill them with random data, maybe zero, then unset
+}
+
 
 # switchan to shred and find because secure-delete is old af
 # also shred gives much ore opttions better for ssds and also lets me zero the files out before they remov
@@ -203,6 +244,7 @@ retreive_chop_appended_data_from_file () {
     tail -c $hex_data_length "$file_path"
 
     # remove $hex_data_length from bottom of $file_path
+    ## dont miss the - in front of $hex_data_length!
     truncate -s -$hex_data_length "$file_path"
 }
 
