@@ -23,6 +23,7 @@ appended_aes_gcm_tag_length=16 # todo: figure dis out
 # commands needed
 required_cmds_arr=(7z openssl argon2 xxd cracklib-check rg shred mktemp sha512sum)
 packages_debian=(7zip openssl argon2 xxd cracklib-runtime ripgrep coreutils coreutils coreutils)
+
 # todo: figure out the yumfags
 # packages_fedora=()
 # todo: figure out te pacmanfags
@@ -65,10 +66,9 @@ temp_files_at_play_arr=(bin_archive_file_tmp bin_archive_file_tmp_two 7z_archive
 
 # todo:
 # NUKE_REKT ()
-# fix_file_perms (chmod: dirs to 700 files to 600 chown to $real_user:$real_user)
 
 fix_file_perms () {
-
+    # todo: add provided bin to tmp files arr, loop through, chmod and chown
 }
 
 betterhiddencrypto_decrypt () {
