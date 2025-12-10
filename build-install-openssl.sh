@@ -9,8 +9,8 @@ wget https://github.com/openssl/openssl/releases/download/openssl-3.6.0/openssl-
 tar xvfz openssl-3.6.0.tar.gz
 cd openssl-3.6.0
 
-sudo mkdir -p /usr/local/openssl-3.6/ssl
-sudo mkdir -p /usr/local/openssl-3.6/bin
+#b sudo mkdir -p /usr/local/openssl-3.6/ssl
+#b sudo mkdir -p /usr/local/openssl-3.6/bin
 
 ./Configure \
     --prefix=/usr/local/openssl-3.6 \
