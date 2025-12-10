@@ -114,6 +114,7 @@ check_requirements () {
 #   environment_check
 environment_check () {
     check_requirements "${required_cmds[@]}"
+    # todo: make sure not running as root
     # todo: test mktmp perms
     # todo: test $PWD perms
     # todo: test volume perms
@@ -345,7 +346,19 @@ NUKE_REKT () {
 # usage:
 #   fix_file_perms
 fix_file_perms () {
-    # todo: add provided bin to tmp files arr, loop through, chmod and chown
+    for tmp_file in "${temp_files_at_play_arr[@]}"; do
+        debug_echo "cleanup: cleaning up $tmp_file"
+        if [ -f "$tmp_file" ]; then
+            sudo chmod 600 "$tmp_file"
+            sudo chown $USER:$USER "$tmp_file"
+        elif [ -d "$tmp_file" ]; then
+            sudo find "$tmp_file" -type d -exec chmod 700 "{}" \;
+            sudo find "$tmp_file" -type f -exec chmod 600 "{}" \;
+            sudo chown -R $USER:$USER "$tmp_file"
+        else
+            continue
+        fi
+    done
 }
 
 # decrypt $bin_archive_file_tmp
